@@ -6,6 +6,7 @@
 <title>Тося и Гав-Патруль</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
 <style>
+@font-face{font-family:"Press Start 2P";src:url("PressStart2P-Regular.ttf") format("truetype");font-display:block}
 /* Layout: one full-screen pixel canvas, letterboxed; touch pads overlay at the bottom on phones */
 :root{--bg:#120d1c;--pad:#ffffff22;--padfg:#fff;--padline:#ffffff55;color-scheme:dark}
 html,body{height:100%;margin:0;background:var(--bg);overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
@@ -92,7 +93,7 @@ addEventListener('blur',()=>{for(const k in keys)keys[k]=false});
 document.querySelectorAll('[data-k]').forEach(b=>{const k=b.dataset.k,m=b.dataset.m;
  b.addEventListener('pointerdown',e=>{e.preventDefault();initAudio();b.classList.add('act');kdown(k);if(m)raw[m]=true});
  ['pointerup','pointerleave','pointercancel'].forEach(ev=>b.addEventListener(ev,()=>{b.classList.remove('act');kup(k)}))});
-cvs.addEventListener('pointerdown',()=>{initAudio();if(G.state!=='play')raw.Enter=true});
+cvs.addEventListener('pointerdown',e=>{initAudio();if(G.state!=='play'&&e.pointerType!=='touch')raw.Enter=true});
 const touchUI=matchMedia('(pointer:coarse)').matches||('ontouchstart' in window);
 if(touchUI)document.getElementById('tc').classList.add('on');
 // ---- gamepad (PlayStation / Xbox, standard mapping) ----
@@ -628,7 +629,7 @@ function updItems(){
   if(L.theme==='forest')burst(c.x,GY-8,30,['#f2c230','#e0a020','#c97a1c','#f5dc6a'],3.5,.08,60,3)}
 }
 function updParts(){for(const p of parts){if(p.pull){p.x+=(p.tx-p.x)*.12;p.y+=(p.ty-p.y)*.12}else{p.x+=p.vx;p.y+=p.vy;p.vy+=p.g}p.life--}parts=parts.filter(p=>p.life>0);
- for(const q of pops)q.t++;pops=pops.filter(q=>q.t<60);for(const g of ghosts)g.t--;ghosts=ghosts.filter(g=>g.t>0)}
+ for(const q of pops)q.t++;pops=pops.filter(q=>q.t<(q.life||60));for(const g of ghosts)g.t--;ghosts=ghosts.filter(g=>g.t>0)}
 
 // ================= LEVEL LOAD / MAIN UPDATE =================
 function loadLevel(){
@@ -1021,8 +1022,8 @@ function platShape(kind,w,h,lh,snow){
   case 'stump':R(0,2,w,h-2,'#7a4a24');R(0,0,w,3,'#d9b07a');R(4,1,w-8,1,'#b0844a');R(-2,h-3,4,3,'#7a4a24');R(w-2,h-3,4,3,'#7a4a24');break;
   case 'hurdle':R(0,0,3,h,'#eeeeee');R(w-3,0,3,h,'#eeeeee');for(let i=0;i<w;i+=6){R(i,0,3,3,'#e74c3c');R(i+3,0,3,3,'#ffffff')}break;
   case 'tire':for(let k=0;k<2;k++){const yy=k*11;R(0,yy,w,11,'#222222');R(2,yy+1,w-4,2,'#444444');R(6,yy+4,w-12,4,'#333333')}break;
-  case 'ramp':ctx.strokeStyle='#8a5a2b';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(4,4);ctx.lineTo(-10,lh);ctx.moveTo(w-4,4);ctx.lineTo(w+10,lh);ctx.moveTo(w/2,4);ctx.lineTo(w/2,lh);ctx.stroke();R(0,0,w,4,'#e67e22');for(let i=0;i<w;i+=12)R(i,0,6,4,'#f1c40f');break;
-  case 'bum':R(6,4,3,lh-4,'#555555');R(w-9,4,3,lh-4,'#555555');R(0,0,w,4,'#3498db');for(let i=0;i<w;i+=16)R(i,0,8,4,'#ffffff');break;
+  case 'ramp':ctx.strokeStyle='#8a5a2b';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(4,4);ctx.lineTo(-10,lh);ctx.moveTo(w-4,4);ctx.lineTo(w+10,lh);ctx.moveTo(w/2,4);ctx.lineTo(w/2,lh);ctx.stroke();R(0,0,w,5,'#ff7f27');R(0,0,w,1,'#ffb74d');for(let i=0;i<w;i+=12)R(i,1,6,4,'#e65100');break;
+  case 'bum':R(6,4,3,lh-4,'#555555');R(w-9,4,3,lh-4,'#555555');R(0,0,w,5,'#ff7f27');R(0,0,w,1,'#ffb74d');for(let i=0;i<w;i+=16)R(i,1,8,4,'#e65100');break;
   case 'sofa':R(0,6,w,h-10,'#7d5ba6');R(5,0,w-10,8,'#9b7bc4');R(5,0,w-10,1,'#b89be0');R(w/2-1,0,2,8,'#7d5ba6');R(-2,-6,8,h+2,'#6a4a92');R(w-6,-6,8,h+2,'#6a4a92');R(2,h-4,3,4,'#3a2a1e');R(w-5,h-4,3,4,'#3a2a1e');break;
   case 'table':R(0,0,w,4,'#a0703c');R(0,0,w,1,'#c08a50');R(0,4,w,1,'#6e4a20');R(3,4,3,lh-4,'#7a5228');R(w-6,4,3,lh-4,'#7a5228');R(8,-6,6,6,'#eeeeee');R(9,-5,4,1,'#8a5a2b');break;
   case 'shelf':R(0,0,w,4,'#c8a070');R(0,0,w,1,'#e0c090');R(0,4,w,1,'#8a6a40');R(4,4,2,5,'#555555');R(w-6,4,2,5,'#555555');break;
@@ -2349,6 +2350,272 @@ function introRender(){const c=MAIN;
  const _render0=render;render=function(){if(G.state==='press'||G.state==='intro'){ctx=MAIN;MAIN.setTransform(1,0,0,1,0,0);MAIN.imageSmoothingEnabled=false;introRender();drawToast();return}_render0()};
  const _ti=titleItems;titleItems=function(){const a=_ti();a.splice(a.length-1,0,{t:'ЗАСТАВКА',f:()=>{G.state='intro';G.t=0;parts=[];playSong('home')}});return a}}
 
+// ================= v1.8: swipe controls, Jack Russell trio, Smogych & owner, phone lady with Buba =================
+// ---- speech bubbles ----
+function drawPopX(q){ctx.globalAlpha=Math.max(0,Math.min(1,((q.life||60)-q.t)/20));
+ if(q.bubble){ctx.font='8px '+FONT;const w=Math.ceil(ctx.measureText(q.s).width)+10,x=Math.round(q.x-w/2),y=Math.round(q.y-q.t*.12)-16;
+  R(x,y,w,14,'#ffffff');R(x,y,w,1,'#222222');R(x,y+13,w,1,'#222222');R(x,y,1,14,'#222222');R(x+w-1,y,1,14,'#222222');R(x+w/2-2,y+14,5,3,'#ffffff');R(x+w/2-2,y+14,1,3,'#222222');R(x+w/2+2,y+14,1,3,'#222222');R(x+w/2-1,y+17,3,2,'#222222');txt(q.s,x+5,y+3,8,q.c,'left','')}
+ else txt(q.s,Math.round(q.x),Math.round(q.y-q.t*.4),8,q.c);ctx.globalAlpha=1}
+function say(e,s,c='#c62828'){pops.push({x:e.x+e.w/2,y:e.y-6,s,c,t:0,life:120,bubble:true})}
+
+// ---- new characters ----
+const JRT={id:'jrt',bl:14,bh:7,leg:5,hw:8,hh:7,earL:4,ear:'drop',c:'#f4f1ea',cs:'#d4cfc4',ch:'#ffffff',w:'#f4f1ea',ws:'#d4cfc4',head:'#a0522d',headh:'#c06a3a',earC:'#7a3a1a',earS:'#5a2a10',nose:'#111111',tip:'#f4f1ea',patch:'#a0522d',collar:'#e53935',blaze:1};
+const HUSKY={id:'husky',bl:24,bh:10,leg:8,hw:10,hh:10,earL:7,ear:'up',c:'#8a9099',cs:'#6a7079',ch:'#a8b0b8',w:'#f4f4f4',ws:'#d8d8d8',head:'#8a9099',headh:'#a8b0b8',earC:'#5a6069',earS:'#d88a98',nose:'#111111',tip:'#f4f4f4',blaze:1,collar:'#1e88e5'};
+const MINI1={id:'mini1',bl:13,bh:7,leg:4,hw:8,hh:8,earL:4,ear:'up',mutt:1,c:'#fafafa',cs:'#e0e0e0',ch:'#ffffff',w:'#ffffff',ws:'#e8e8e8',earC:'#f0f0f0',earS:'#f8bbd0',nose:'#111111',tip:'#fafafa',patch:'#eeeeee',collar:'#e91e63'};
+const MINI2={...MINI1,id:'mini2',c:'#e8913a',cs:'#c06a1c',ch:'#f5b06a',w:'#fff3e0',ws:'#f0d8b8',earC:'#c06a1c',patch:'#d07a2a',collar:'#1e88e5'};
+const BUBA={id:'buba',bl:30,bh:12,leg:10,hw:12,hh:11,earL:9,ear:'drop',c:'#1e1a18',cs:'#141210',ch:'#3a3430',w:'#8a4a22',ws:'#6a3618',earC:'#141210',earS:'#2a1f1a',nose:'#000000',tip:'#1e1a18',collar:'#fdd835'};
+const GIRL={skin:'#f1c27d',hair:'#5a3a22',long:1,shirt:'#7b1fa2',pants:'#263238',shoes:'#212121'};
+const LADY={skin:'#f1c27d',hair:'#c9a26a',shirt:'#c62828',pants:'#37474f',shoes:'#212121'};
+const SWEARS=['#@$%!','Смогыч, #%@&!','Ну #@$%, опять!','&%$#@!!!','Да чтоб тебя, #@%!','Смогыч, ко мне, #&%!'];
+const PHONE=['Алло? Да-да!','Я не слышу! Алло!','Буба, фу! ...Алло?','Да гуляю я, гуляю!','Ой, связь пропадает!','А где мои собачки?'];
+Object.assign(EDEF,{jrt3:[44,12,3],smog:[42,32,9],phonelady:[16,32,9],minidog:[12,10,1],buba:[30,24,3]});
+Object.assign(SCORE,{jrt3:450,smog:0,phonelady:0,minidog:150,buba:450});
+Object.assign(CRY,{jrt3:'Тяф-тяф-тяф... удираем!',smog:'',phonelady:'',minidog:'Тяв...',buba:'Буба хороший мальчик...'});
+Object.assign(EXTRA_INIT,{smog(e){e.friend=true;e.dir=1},phonelady(e){e.friend=true;e.dir=1},minidog(e,k){e.v=k<.5?1:2}});
+Object.assign(EXTRA_AI,{
+ jrt3(e,dx,dy,adx){if(dogChase(e,dx,dy,adx,2.4,'Тяф-тяф-тяф!')&&e.onGround&&e.t%36===0)e.vy=-3.4},
+ minidog(e,dx,dy,adx){if(!dogChase(e,dx,dy,adx,2.2,'Тяв-тяв!')){}if(e.onGround&&e.t%50===0)e.vy=-3},
+ buba(e,dx,dy,adx){dogChase(e,dx,dy,adx,1.7,'ГАВ! Я Буба!')},
+ smog(e,dx,dy,adx){patrol(e,.7,(e.opt&&e.opt.range)||140);
+  if(adx<260&&e.t%150===40)say(e,SWEARS[(e.t/150|0)%SWEARS.length],'#c62828');
+  if(adx<200&&!e.hi){e.hi=1;pops.push({x:e.x+30,y:e.y-4,s:'СМОГЫЧ: Аууууу!',c:'#90caf9',t:0})}
+  if(!e.gave&&ov(P,e)){e.gave=1;P.hp=Math.min(5,P.hp+1);S.heal();pop(e.x-30,e.y-30,'Смогыч делится косточкой!','#77ff77');for(let i=0;i<6;i++)parts.push({x:e.x+e.w/2,y:e.y,vx:rnd(-1,1),vy:-rnd(.5,1.5),g:-.01,life:50,c:'#ff6b9a',s:3})}},
+ phonelady(e,dx,dy,adx){patrol(e,.4,(e.opt&&e.opt.range)||80);if(adx<280&&e.t%160===60)say(e,PHONE[(e.t/160|0)%PHONE.length],'#1e40c8')}});
+Object.assign(EXTRA_SPR,{
+ jrt3:e=>{const f=Math.abs(e.vx)>.1?(e.t>>2)%4:0,air=e.onGround?0:1,st=e.stun>0?1:0;return sprite(`jrt3|${f}|${air}|${st}|${e.angry?1:0}`,90,44,45,36,()=>{
+   const pos=[-15,0,15],hop=[0,2,1];ctx.strokeStyle='#e53935';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-28,-24);ctx.lineTo(-12,-14);ctx.moveTo(-28,-24);ctx.lineTo(3,-14);ctx.moveTo(-28,-24);ctx.lineTo(18,-14);ctx.stroke();R(-30,-26,3,3,'#e53935');
+   for(let i=0;i<3;i++){ctx.save();ctx.translate(pos[i],-((f+hop[i])%4===1?2:0)-(air?2:0));drawDogSpr(JRT,{f:(f+i)%4,air:air?2:0,act:'',wag:(f+i)%4,angry:e.angry&&!st,dizzy:st,mouth:(e.t>>3)%3===i});ctx.restore()}})},
+ minidog:e=>dogSprite(e.v===1?MINI1:MINI2,{f:Math.abs(e.vx)>.1?(e.t>>2)%4:0,air:e.onGround?0:2,act:'',wag:(e.t>>1)%4,angry:e.angry&&!(e.stun>0),dizzy:e.stun>0,mouth:(e.t>>3)%2}),
+ buba:e=>dogSprite(BUBA,{f:Math.abs(e.vx)>.1?(e.t>>2)%4:0,air:e.onGround?0:2,act:'',wag:(e.t>>2)%4,angry:e.angry&&!(e.stun>0),dizzy:e.stun>0,mouth:e.lunge>0}),
+ smog:e=>{const s=stepOf(e),f=Math.abs(e.vx)>.1?(e.t>>2)%4:0;return sprite(`smog|${s}|${f}`,90,56,45,50,()=>{
+   ctx.save();ctx.translate(-12,0);human(GIRL,{s});R(-1,-14,3,2,GIRL.skin);ctx.restore();
+   ctx.strokeStyle='#e53935';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-10,-13);ctx.quadraticCurveTo(4,-6,16,-18);ctx.stroke();
+   ctx.save();ctx.translate(18,0);drawDogSpr(HUSKY,{f,air:0,act:'',wag:(f+1)%4,tongue:true});R(19,-24,2,2,'#4fc3f7');ctx.restore()})},
+ phonelady:e=>{const s=stepOf(e);return sprite(`lady|${s}`,40,56,20,50,()=>{human(LADY,{s});const hy=-33;R(-5,hy-5,10,2,'#ffffff');R(-5,hy-3,10,2,'#1e40c8');R(-5,hy-1,10,2,'#e53935');circ(0,hy-7,2,'#ffffff');R(3,hy+2,3,6,'#212121');R(2,hy+7,3,4,LADY.skin);R(4,hy+3,1,1,'#76ff03')})}});
+addDogs('city',[['jrt3',1000],['smog',1700,{range:120}],['phonelady',2550,{range:70}],['minidog',2500],['minidog',2610],['buba',2700]]);
+addDogs('park',[['jrt3',560],['smog',1900,{range:140}],['jrt3',2650],['phonelady',3150,{range:60}],['minidog',3110],['minidog',3200],['buba',3290]]);
+
+// ---- swipe controls (touch screens) ----
+if(touchUI){
+ const st=document.createElement('style');st.textContent='.pad.l{display:none!important}#tc{justify-content:flex-end}@media (orientation:portrait){.pad button{width:66px;height:66px;font-size:10px}.pad.r{width:226px}}';document.head.appendChild(st);
+ let sw=null;const isBtn=el=>el&&el.closest&&el.closest('button');
+ addEventListener('touchstart',e=>{initAudio();for(const t of e.changedTouches){if(isBtn(t.target)||sw)continue;sw={id:t.identifier,x0:t.clientX,y0:t.clientY,t0:performance.now(),moved:false,jumped:false}}},{passive:false});
+ addEventListener('touchmove',e=>{for(const t of e.changedTouches){if(!sw||t.identifier!==sw.id)continue;e.preventDefault();const dx=t.clientX-sw.x0,dy=t.clientY-sw.y0,th=14;
+   if(Math.abs(dx)>th||Math.abs(dy)>th)sw.moved=true;
+   if(G.state==='play'){
+    if(dx>th){if(!keys.right)kdown('right');kup('left')}else if(dx<-th){if(!keys.left)kdown('left');kup('right')}else{kup('left');kup('right')}
+    if(dy<-36){if(!keys.jump){kdown('jump');sw.jumped=true}}else if(dy>-20&&sw.jumped&&keys.jump)kup('jump');
+    if(dy>40){if(!keys.down)kdown('down')}else if(keys.down)kup('down');
+    if(Math.abs(dx)>70)sw.x0=t.clientX-Math.sign(dx)*70;if(dy<-90)sw.y0=t.clientY+90}
+   else{if(dy<-40){raw.ArrowUp=true;sw.y0=t.clientY}else if(dy>40){raw.ArrowDown=true;sw.y0=t.clientY}else if(dx>40){raw.ArrowRight=true;sw.x0=t.clientX}else if(dx<-40){raw.ArrowLeft=true;sw.x0=t.clientX}}}},{passive:false});
+ const end=e=>{for(const t of e.changedTouches){if(!sw||t.identifier!==sw.id)continue;
+   if(G.state==='play'){kup('left');kup('right');kup('down');if(keys.jump)kup('jump');if(!sw.moved&&performance.now()-sw.t0<250){kdown('jump');setTimeout(()=>kup('jump'),140)}}
+   else if(!sw.moved)raw.Enter=true;sw=null}};
+ addEventListener('touchend',end);addEventListener('touchcancel',end);
+ function mobileLayout(){const portrait=innerHeight>innerWidth;document.body.style.alignItems=portrait?'flex-start':'center';cvs.style.marginTop=portrait?'calc(8px + env(safe-area-inset-top,0px))':'0'}
+ addEventListener('resize',mobileLayout);mobileLayout();
+ const _r1=render;render=function(){_r1();if(G.state==='play'&&G.banner>0){ctx=MAIN;MAIN.setTransform(1,0,0,1,0,0);MAIN.globalAlpha=Math.min(1,G.banner/30);panel(60,140,360,34);txt('СВАЙП ← → БЕГ   ↑ ИЛИ ТАП ПРЫЖОК',W/2,147,8,'#ffe066','center');txt('↓ ЛЕЧЬ / СПРЫГНУТЬ',W/2,160,8,'#ffffff','center');MAIN.globalAlpha=1}}}
+if(touchUI){const h=document.createElement('div');h.id='swipehint';h.innerHTML='&larr; ПРОВЕДИ ПАЛЬЦЕМ &rarr;<br><br>&uarr; ИЛИ ТАП &mdash; ПРЫЖОК<br><br>&darr; ЛЕЧЬ';
+ const st=document.createElement('style');st.textContent='#swipehint{display:none;position:fixed;left:16px;right:16px;top:52%;transform:translateY(-50%);text-align:center;font:10px "Press Start 2P",monospace;line-height:1.4;color:#ffffff44;pointer-events:none;border:2px dashed #ffffff22;border-radius:16px;padding:24px 8px}@media (orientation:portrait){#swipehint{display:block}}';
+ document.head.appendChild(st);document.body.appendChild(h)}
+
+// ================= v1.9: road to school and dog park go first =================
+{const FIRST=['city','park'];const pairs=LEVELS.map((l,i)=>[l,CLEARMSG[i]]);const a=FIRST.map(t=>pairs.find(p=>p[0].theme===t)),b=pairs.filter(p=>!FIRST.includes(p[0].theme));
+ LEVELS.length=0;CLEARMSG.length=0;for(const [l,m] of a.concat(b)){LEVELS.push(l);CLEARMSG.push(m)}
+ const sw='\n\nКлавиша {SWAP} меняет собаку:';const oc=LEVELS.find(l=>l.theme==='ocean');if(oc)oc.story=oc.story.replace(sw,'');
+ const ci=LEVELS[0];if(!ci.story.includes('{SWAP}'))ci.story+='\n\nКлавиша {SWAP} меняет собаку на бегу:';}
+save=Math.min(save,LEVELS.length-1);
+
+// ================= v2.0: friends — gray-haired man with ridgebacks Ray & Grant; Sveta with Buba and the little dogs =================
+const RIDGE={id:'ridge',bl:28,bh:11,leg:10,hw:11,hh:10,earL:7,ear:'drop',c:'#c8873f',cs:'#a86a2a',ch:'#dca060',w:'#c8873f',ws:'#a86a2a',earC:'#8a5420',earS:'#6a3a14',nose:'#111111',tip:'#c8873f',collar:'#2e7d32'};
+const RIDGE2={...RIDGE,id:'ridge2',c:'#b97a36',cs:'#9a5e22',ch:'#d09050',w:'#b97a36',ws:'#9a5e22',collar:'#c62828'};
+const GRAYMAN={skin:'#e8c09a',hair:'#d0d0d0',shirt:'#37474f',pants:'#455a64',shoes:'#212121'};
+const CALLS=['Рэй! Грант! Ко мне!','Рэй, фу!','Грант, отдай!','Рэй! Рэ-э-эй!','Грант, рядом!','Ребята, домой!'];
+const SVETA=['Алло? Это Света!','Буба, рядом! ...Алло?','Да-да, гуляем!','Девочки, не убегайте!','Ой, связь пропадает!'];
+Object.assign(EDEF,{grayman:[72,40,9]});
+Object.assign(SCORE,{grayman:0});CRY.grayman='';
+function giftOnce(e,msg){if(!e.gave&&ov(P,e)){e.gave=1;P.hp=Math.min(5,P.hp+1);S.heal();pop(e.x-30,e.y-30,msg,'#77ff77');for(let i=0;i<6;i++)parts.push({x:e.x+e.w/2,y:e.y,vx:rnd(-1,1),vy:-rnd(.5,1.5),g:-.01,life:50,c:'#ff6b9a',s:3})}}
+Object.assign(EXTRA_INIT,{grayman(e){e.friend=true;e.dir=1},buba(e){e.friend=true;e.dir=-1},minidog(e,k){e.v=k<.5?1:2;e.friend=true;e.dir=k<.5?1:-1}});
+Object.assign(EXTRA_AI,{
+ grayman(e,dx,dy,adx){patrol(e,.55,(e.opt&&e.opt.range)||120);if(adx<280&&e.t%130===30)say(e,CALLS[(e.t/130|0)%CALLS.length],'#1565c0');giftOnce(e,'Рэй и Грант делятся косточкой!')},
+ buba(e,dx,dy,adx){patrol(e,.8,50);if(adx<160&&e.t%140===70)say(e,'Гав! (дружелюбно)','#5d4037');giftOnce(e,'Буба делится косточкой!')},
+ minidog(e,dx,dy,adx){patrol(e,1.4,40);if(e.onGround&&e.t%60===0)e.vy=-2.6;if(adx<140&&e.t%120===e.v*40)say(e,'Тяв!','#ad1457');giftOnce(e,'Тяв! Держи вкусняшку!')},
+ phonelady(e,dx,dy,adx){patrol(e,.4,(e.opt&&e.opt.range)||70);if(!e.hi&&adx<240){e.hi=1;pop(e.x-10,e.y-20,'СВЕТА','#ffe066')}if(adx<280&&e.t%150===60)say(e,SVETA[(e.t/150|0)%SVETA.length],'#1e40c8')}});
+EXTRA_SPR.buba=e=>dogSprite(BUBA,{f:Math.abs(e.vx)>.1?(e.t>>2)%4:0,air:e.onGround?0:2,act:'',wag:(e.t>>1)%4,tongue:true,blink:(e.t%180)<6});
+EXTRA_SPR.minidog=e=>dogSprite(e.v===1?MINI1:MINI2,{f:Math.abs(e.vx)>.1?(e.t>>2)%4:0,air:e.onGround?0:2,act:'',wag:(e.t>>1)%4,tongue:true});
+EXTRA_SPR.grayman=e=>{const s=stepOf(e),f=Math.abs(e.vx)>.1?(e.t>>2)%4:0;return sprite(`gm|${s}|${f}`,110,70,55,62,()=>{
+ ctx.save();ctx.translate(-22,0);ctx.scale(1,1.18);human(GRAYMAN,{s});ctx.restore();R(-21,-34,5,3,'#d0d0d0');R(-20,-31,3,1,'#bdbdbd');
+ ctx.strokeStyle='#2e7d32';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-20,-16);ctx.quadraticCurveTo(-4,-8,6,-24);ctx.moveTo(-20,-16);ctx.quadraticCurveTo(10,-4,28,-22);ctx.stroke();
+ for(const [dx,spec,ph] of [[4,RIDGE,0],[28,RIDGE2,2]]){ctx.save();ctx.translate(dx,0);drawDogSpr(spec,{f:(f+ph)%4,air:0,act:'',wag:(f+ph+1)%4,tongue:ph===2});R(-8,-22,12,1,'#7a4a18');R(-6,-23,8,1,'#7a4a18');ctx.restore()}})};
+function addSveta(theme,x){addDogs(theme,[['phonelady',x,{range:60}],['minidog',x-36],['minidog',x+36],['buba',x+80]])}
+function addMan(theme,x,r){addDogs(theme,[['grayman',x,{range:r||110}]])}
+addMan('city',2000,100);addMan('park',1200,120);addMan('beach',1500);addMan('winter',1550);addMan('show',1250,100);addMan('airport',2620,60);addMan('west',1700);
+addSveta('metro',1120);addSveta('market',1650);addSveta('vet',2180);addSveta('zoo',1420);addSveta('beach',2600);
+
+// ================= v2.1: no beard, samoyed couple, shuffled levels (dog park first) =================
+EXTRA_SPR.grayman=e=>{const s=stepOf(e),f=Math.abs(e.vx)>.1?(e.t>>2)%4:0;return sprite(`gm2|${s}|${f}`,110,70,55,62,()=>{
+ ctx.save();ctx.translate(-22,0);ctx.scale(1,1.18);human(GRAYMAN,{s});ctx.restore();
+ ctx.strokeStyle='#2e7d32';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-20,-16);ctx.quadraticCurveTo(-4,-8,6,-24);ctx.moveTo(-20,-16);ctx.quadraticCurveTo(10,-4,28,-22);ctx.stroke();
+ for(const [dx,spec,ph] of [[4,RIDGE,0],[28,RIDGE2,2]]){ctx.save();ctx.translate(dx,0);drawDogSpr(spec,{f:(f+ph)%4,air:0,act:'',wag:(f+ph+1)%4,tongue:ph===2});R(-8,-22,12,1,'#7a4a18');R(-6,-23,8,1,'#7a4a18');ctx.restore()}})};
+
+const SAMO={id:'samo',bl:24,bh:11,leg:8,hw:11,hh:10,earL:6,ear:'up',mutt:1,c:'#fafafa',cs:'#e4e4e4',ch:'#ffffff',w:'#ffffff',ws:'#ececec',earC:'#f2f2f2',earS:'#f8bbd0',nose:'#222222',tip:'#fafafa',collar:'#ff80ab'};
+const MOMLOOK={skin:'#f1c27d',hair:'#8d5a3b',long:1,shirt:'#f48fb1',pants:'#5c6bc0',shoes:'#212121'};
+const GUYLOOK={skin:'#e0ac69',hair:'#212121',shirt:'#43a047',pants:'#37474f',shoes:'#212121',glasses:1};
+const COUPLE=['Кто тут хорошая девочка?','Не тяни, мы не спешим!','Смотри, бигли бегут!','Пойдём домой, я устала','Самоедик, рядом!','Осторожно, животик!'];
+Object.assign(EDEF,{samcouple:[84,34,9]});SCORE.samcouple=0;CRY.samcouple='';
+EXTRA_INIT.samcouple=e=>{e.friend=true;e.dir=1};
+EXTRA_AI.samcouple=(e,dx,dy,adx)=>{patrol(e,.45,(e.opt&&e.opt.range)||100);if(adx<280&&e.t%140===50)say(e,COUPLE[(e.t/140|0)%COUPLE.length],'#00897b');
+ if(!e.hi&&adx<200){e.hi=1;pops.push({x:e.x+60,y:e.y-4,s:'Гав! (по-самоедски)',c:'#ffffff',t:0})}giftOnce(e,'Самоедка делится косточкой!')};
+EXTRA_SPR.samcouple=e=>{const s=stepOf(e),f=Math.abs(e.vx)>.1?(e.t>>2)%4:0;return sprite(`samc|${s}|${f}`,120,60,60,52,()=>{
+ ctx.save();ctx.translate(-30,0);human(MOMLOOK,{s});ell(4,-15,5,5,'#f48fb1');ell(5,-16,3,3,'#f8bbd0');ctx.restore();
+ ctx.save();ctx.translate(-10,0);human(GUYLOOK,{s:-s});const hy=-33;for(let i=0;i<4;i++)R(-1+i*2,hy+6,1,1,'#3a3a3a');R(-3,hy+7,7,1,'#4a4a4a88');R(4,hy+5,1,2,'#3a3a3a');ctx.restore();
+ ctx.strokeStyle='#ff80ab';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-8,-14);ctx.quadraticCurveTo(8,-6,20,-18);ctx.stroke();
+ ctx.save();ctx.translate(24,0);drawDogSpr(SAMO,{f,air:0,act:'',wag:(f+1)%4,tongue:true});for(let i=0;i<5;i++)circ(-8+i*4,-17+(i%2),2.5,'#ffffff');ctx.restore()})};
+addDogs('park',[['samcouple',2450,{range:100}]]);
+for(const [th,x] of [['school',1850],['market',2200],['airport',1300],['show',2150],['winter',2300],['candy',1900],['zoo',2550]])addDogs(th,[['samcouple',x,{range:80}]]);
+
+// shuffle: dog park first, vacuum night stays the finale, the rest in a fixed shuffled order
+{const pairs=LEVELS.map((l,i)=>[l,CLEARMSG[i]]);const first=pairs.find(p=>p[0].theme==='park'),last=pairs.find(p=>p[0].theme==='home');
+ const mid=pairs.filter(p=>p!==first&&p!==last);for(let i=mid.length-1;i>0;i--){const j=Math.floor(hash(i*7919+2026)*(i+1));[mid[i],mid[j]]=[mid[j],mid[i]]}
+ LEVELS.length=0;CLEARMSG.length=0;for(const [l,m] of [first,...mid,last]){LEVELS.push(l);CLEARMSG.push(m)}
+ const sw='\n\nКлавиша {SWAP} меняет собаку на бегу:';for(const l of LEVELS)l.story=l.story.replace(sw,'');LEVELS[0].story+=sw;}
+LEVELS[0].story='Вечер. Собачья площадка — тут собрались ВСЕ!\n\nРэй и Грант с хозяином, Смогыч, Света с Бубой и малышами, самоедка с семьёй, лимонный и коричневый бигли... А ещё злые: доберман, овчарка, Юни и связка джек-расселов!\n\nА мячики увозит робот-доставщик. Верни их!\n\nКлавиша {SWAP} меняет собаку:';
+save=Math.min(save,LEVELS.length-1);
+
+// ================= v2.2: dog park look (green fence, sand, orange slides, tunnels), samoyed Fina =================
+Object.assign(ONEWAY,{tunnel:1});
+PLAT_X.tunnel=(w,h)=>{R(4,2,w-8,h-2,'#2a1030');ell(w/2,h/2+1,w/2-6,h/2-3,'#1a0820')};
+function drawTunnelFront(p){const c=MAIN,x=Math.round(p.x),y=Math.round(p.y),w=p.w,h=p.h;c.globalAlpha=.9;R(x+6,y,w-12,h,'#1e88e5');for(let k=x+10;k<x+w-8;k+=8)R(k,y,3,h,'#1565c0');R(x+6,y,w-12,2,'#64b5f6');R(x+6,y+h-3,w-12,3,'#0d47a1');c.globalAlpha=1;
+ c.strokeStyle='#0d47a1';c.lineWidth=3;for(const ex of [x+5,x+w-5]){c.beginPath();c.ellipse(ex,y+h/2,5,h/2-1,0,0,7);c.stroke()}c.strokeStyle='#64b5f6';c.lineWidth=1;c.beginPath();c.ellipse(x+5,y+h/2,5,h/2-1,0,0,7);c.stroke()}
+{const lv=LEVELS.find(l=>l.theme==='park');const ob=lv.build;lv.build=function(a){ob(a);for(const x of [880,1570,2690,3140])a.p('tunnel',x,GY-24,80,24)}}
+BUILD.park=function(){const sky=skyCanvas(['#1f1848','#33246a','#5a3478','#8a4a80','#c86a7a','#f0956a']);
+ {const p=ctx;ctx=sky.getContext('2d');for(let k=0;k<50;k++)R(hash(k)*W|0,hash(k+50)*90|0,1,1,k%5?'#ffffff88':'#ffffff');circ(90,50,10,'#fff4d0');circ(94,47,9,'#33246a');ctx=p}
+ const sky2=strip(960,GY,w=>{for(let i=0;i<32;i++){const x=i*30,h=30+hash(i*3)*70|0;wrapAt(w,x,30,X=>{R(X,GY-30-h,28,h+30,'#2b2550');for(let r=0;r<h/9;r++)if(hash(i*13+r)<.4)R(X+4+(r%3)*7,GY-h-26+r*9,3,4,'#ffd27a')})}});
+ const trees=strip(990,GY,w=>{for(let i=0;i<11;i++){const x=i*90;wrapAt(w,x,48,X=>{R(X+18,GY-44,5,44,'#3d2a1e');circ(X+20,GY-58,22,'#2a5f34');circ(X+8,GY-48,13,'#24552e');circ(X+33,GY-50,14,'#2f6b3a');circ(X+16,GY-66,10,'#3a7d46')})}});
+ const fence=strip(960,GY,w=>{R(0,GY-30,w,2,'#2e7d32');R(0,GY-30,w,1,'#66bb6a');for(let x=0;x<w;x+=40){R(x,GY-32,3,32,'#1b5e20');R(x,GY-32,1,32,'#43a047');ctx.strokeStyle='#388e3c99';ctx.lineWidth=1;ctx.beginPath();for(let k=0;k<5;k++){ctx.moveTo(x+k*8,GY-28);ctx.lineTo(x+k*8+26,GY);ctx.moveTo(x+k*8+26,GY-28);ctx.lineTo(x+k*8,GY)}ctx.stroke()}
+  for(let x=80;x<w;x+=240)lampPost(x,22);R(300,GY-58,90,20,'#2e7d32');R(300,GY-58,90,2,'#66bb6a');txt('ПЛОЩАДКА',345,GY-53,8,'#ffffff','center','');R(320,GY-38,3,8,'#1b5e20');R(368,GY-38,3,8,'#1b5e20')});
+ const fg=strip(800,30,w=>{for(let i=0;i<10;i++){const x=hash(i*23)*w|0;wrapAt(w,x,40,X=>{ell(X+20,26,20,12,'#2a6a34');ell(X+14,22,10,7,'#3a8a44');R(X+24,18,2,2,'#ff7aa0')})}});
+ const t=tile(()=>{R(0,0,128,36,'#e2c98a');dith(0,0,128,36,'#d4b870',.3);R(0,0,128,2,'#efdba8');for(let k=0;k<6;k++){const x=hash(k*13)*118|0,y=6+hash(k*5)*24|0;R(x,y,3,2,'#c8ab6a');R(x-2,y-3,1,1,'#c8ab6a');R(x+1,y-4,1,1,'#c8ab6a');R(x+4,y-3,1,1,'#c8ab6a')}for(let x=0;x<128;x+=5)if(hash(x*7)<.3)R(x,10+hash(x)*24|0,2,1,'#bfa060')});
+ return{sky,layers:[{c:sky2,f:.15,y:0},{c:trees,f:.45,y:0},{c:fence,f:.8,y:0}],fg:[{c:fg,f:1.25,y:H-26}],pit:'#3a2a18',tile:t}};
+delete THEMES.park;
+// samoyed Fina
+COUPLE.splice(0,COUPLE.length,'Фина, рядом!','Кто тут хорошая девочка, Фина?','Фина, не тяни!','Смотри, Фина, бигли!','Фина, домой, я устала','Осторожно, животик!');
+EXTRA_AI.samcouple=(e,dx,dy,adx)=>{patrol(e,.45,(e.opt&&e.opt.range)||100);if(adx<280&&e.t%140===50)say(e,COUPLE[(e.t/140|0)%COUPLE.length],'#00897b');
+ if(!e.hi&&adx<200){e.hi=1;pops.push({x:e.x+60,y:e.y-4,s:'ФИНА: Гав! (по-самоедски)',c:'#ffffff',t:0})}giftOnce(e,'Фина делится косточкой!')};
+LEVELS[0].story=LEVELS[0].story.replace('самоедка с семьёй','самоедка Фина с семьёй');
+
+// ================= v2.3: short funny cutscene before every level =================
+const CS_MOM={skin:'#f1c27d',hair:'#6b3a1a',long:1,shirt:'#e84393',pants:'#2c3e50',shoes:'#222222'};
+const CS_DAD={skin:'#f1c27d',hair:'#4a2c17',shirt:'#1e88e5',pants:'#37474f',shoes:'#222222'};
+const CS_KID={...KIDS[0],hat:'cap',hatC:'#e67e22',bag:'school'};
+const A=(k,x0,x1,o={})=>({k,x0,x1:x1==null?x0:x1,...o});
+const DOGS3=(x=150,run=true)=>[A('tosya',run?-40:x,x),A('lexi',run?-90:x-55,x-55),A('loki',run?-140:x+55,x+55)];
+const CUT={
+ park:[{bg:'park',d:300,a:[A('samcouple',60),A('phonelady',330,330,{dir:-1}),A('buba',370,370,{dir:-1}),A('minidog',300),A('grayman',430,430,{dir:-1}),...DOGS3(170)],l:[['СВЕТА','Алло? Да, мы уже на площадке!'],['ЛОКИ','Где мячики? Где ВСЕ мячики?!']]},
+  {bg:'park',d:240,a:[A('samcouple',60),A('phonelady',330,330,{dir:-1}),A('buba',370,370,{dir:-1}),A('grayman',430,430,{dir:-1}),...DOGS3(170,false)],l:[['ФИНА','Их увёз робот-доставщик! Гав!'],['ТОСЯ','Гав-Патруль, за мячиками!']],sfx:'bark'}],
+ museum:[{bg:'museum',night:.45,d:260,a:[A('tosya',-40,180,{slow:1}),A('lexi',110,110,{act:'lie'}),A('loki',-140,240,{slow:1})],l:[['ТОСЯ','Тссс... тут спят экспонаты.'],['ЛЕКСИ','Отличное место, чтобы полежать...']]},
+  {bg:'museum',night:.45,d:200,shake:8,sfx:'boom',a:[A('tosya',180,180,{jump:1}),A('lexi',110,110,{jump:1}),A('loki',240,240,{jump:1})],l:[['???','РРРООАААР!'],['ЛОКИ','Экспонат... ПРОСНУЛСЯ!!!']]}],
+ pirate:[{bg:'pirate',d:260,a:[A('parrot',300,300,{y:70,dir:-1}),...DOGS3(150)],l:[['ПОПУГАЙ','Косточки на борту! Карр!'],['ТОСЯ','Пираты украли НАШИ косточки!']]},
+  {bg:'pirate',d:200,sfx:'bark',a:[A('pirate',390,390,{dir:-1}),...DOGS3(150,false)],l:[['ПИРАТ','Аррр! Кто тут шастает?'],['ЛОКИ','НА АБОРДАЖ!!!']]}],
+ river:[{bg:'forest',d:260,a:[A('grayman',370,370,{dir:-1}),...DOGS3(150)],l:[['ЛЕКСИ','Жарко... полежу в речке.'],['ЛОКИ','А я ныряю! БОМБОЧКОЙ!!!']]},
+  {bg:'river',d:180,sfx:'splash',a:[A('grayman',370,370,{dir:-1}),A('tosya',150),A('lexi',95,95,{act:'lie'}),A('loki',205,260,{jump:1})],l:[['ХОЗЯИН РЭЯ','Рэй! Грант! Не лезьте в воду!']]}],
+ show:[{bg:'show',d:260,a:[A('poodle',370,370,{dir:-1}),...DOGS3(150)],l:[['ПУДЕЛЬ','Фи, дворняжки на выставке!'],['ТОСЯ','Мы не дворняжки, мы БИГЛИ!']]},
+  {bg:'show',d:200,a:[A('samcouple',300,300,{dir:-1}),...DOGS3(150,false)],l:[['ЛОКИ','А я... а кто я вообще?'],['ФИНА','Ты — Локи! Гав!']]}],
+ west:[{bg:'west',d:300,a:[A('cowboy',380,380,{dir:-1}),...DOGS3(150)],l:[['ТОСЯ','Шериф Тося прибыла в город!'],['КОВБОЙ','Йи-ха! Тут свои порядки!'],['ЛЕКСИ','Можно я буду шерифом, который лежит?']]}],
+ village:[{bg:'village',scroll:3,d:270,a:[A('car',230)],l:[['ЛЕКСИ','Мы уже приехали?'],['ПАПА','Нет.'],['ЛЕКСИ','А сейчас?']]},
+  {bg:'village',d:220,sfx:'honk',a:[A('goose',380,330,{dir:-1}),A('dad',60),...DOGS3(170,false)],l:[['ГУСЬ','ГА-ГА-ГА!!!'],['ЛОКИ','Это что за белый дракон?!']]}],
+ metro:[{bg:'metro',d:260,a:[A('phonelady',300,300,{dir:-1}),A('buba',345,345,{dir:-1}),A('minidog',260),A('babka',430,410,{dir:-1}),...DOGS3(140)],l:[['СВЕТА','Алло? Я в метро! Буба, держись!'],['БАБУШКА','Пропустите бабушку!']]},
+  {bg:'metro',d:170,shake:3,a:[A('phonelady',300,300,{dir:-1}),A('buba',345,345,{dir:-1}),...DOGS3(140,false)],l:[['ТОСЯ','Осторожно, двери закрываются!'],['ЛОКИ','А куда мы едем?!']]}],
+ forest:[{bg:'forest',scroll:3,d:250,a:[A('car',230)],l:[['ЛЕКСИ','Уши... летят...'],['ЛОКИ','БЕЛКА! БЕЛКА! БЕЛКА!!!']]},
+  {bg:'forest',d:220,a:[A('dad',60),A('squirrel',360,360,{y:40,dir:-1}),...DOGS3(170,false)],l:[['ТОСЯ','Чую запах леса... и колбасы!'],['ПАПА','Собаки, только не убегайте в лес!']]}],
+ candy:[{bg:'candy',d:320,a:[...DOGS3(160)],l:[['ТОСЯ','Пахнет... ПЕЧЕНЬКАМИ!'],['ЛОКИ','Я съел всего одну... ну, десять.'],['ЛЕКСИ','А можно полежать в креме?']]}],
+ beach:[{bg:'beach',d:320,a:[A('samcouple',330,330,{dir:-1}),A('tosya',-40,150),A('lexi',95,95,{act:'belly'}),A('loki',-140,215,{jump:1})],l:[['ФИНА','Песок горячий! Ай-ай-ай!'],['ЛОКИ','Я копаю яму до Китая!'],['ЛЕКСИ','Наконец-то отпуск...']]}],
+ ocean:[{bg:'beach',d:260,a:[...DOGS3(160)],l:[['ЛОКИ','Смотрите! Волшебный акваланг!'],['ТОСЯ','А собаки умеют дышать под водой?']]},
+  {bg:'ocean',d:180,bubbles:1,sfx:'splash',a:[A('tosya',150,150,{y:60}),A('lexi',95,95,{y:40}),A('loki',210,210,{y:80})],l:[['ЛОКИ','Буль-буль... Нормально! Плывём!']]}],
+ circus:[{bg:'circus',d:280,a:[A('clown',380,380,{dir:-1}),...DOGS3(150)],l:[['КЛОУН','Бип-бип! Кто тут самый смелый?'],['ЛОКИ','Я! Я самый смелый! ...А что надо делать?']]}],
+ school:[{bg:'city',d:300,a:[A('kid',300,420),...DOGS3(150)],l:[['РЕБЁНОК','Пока, собаки! Я на урок!'],['ТОСЯ','Я тоже хочу на урок!'],['ЛОКИ','А пятёрки там вкусные?']]}],
+ groom:[{bg:'groom',d:300,a:[A('mom',390,390,{dir:-1}),A('samcouple',290,290,{dir:-1}),...DOGS3(140,false)],l:[['МАМА','Сегодня все идём в груминг!'],['ЛЕКСИ','НЕЕЕЕЕТ!'],['ФИНА','А мне нравится! Я пушистая!']]}],
+ market:[{bg:'market',d:300,a:[A('phonelady',370,370,{dir:-1}),A('minidog',330),...DOGS3(150)],l:[['СВЕТА','Алло? Да, я в «Гаве», беру сыр!'],['ЛОКИ','Колбасный отдел — НАЛЕВО!'],['ТОСЯ','Локи, нам туда нельзя!']]}],
+ city:[{bg:'city',d:240,a:[A('mom',340,340,{dir:-1}),A('kid',385,385,{dir:-1}),...DOGS3(150)],l:[['МАМА','Собаки, проводите ребёнка в школу!'],['ТОСЯ','Есть, капитан!']],sfx:'bark'},
+  {bg:'city',d:220,a:[A('smog',420,330,{dir:-1}),...DOGS3(150,false)],l:[['ХОЗЯЙКА СМОГЫЧА','Смогыч, стой! #@$%!'],['ЛОКИ','Ой... а что такое #@$%?']]}],
+ zoo:[{bg:'zoo',d:320,a:[A('grayman',390,390,{dir:-1}),...DOGS3(150)],l:[['ЛОКИ','Это собака? Очень высокая собака.'],['ЛЕКСИ','Бегемот тоже любит полежать!'],['ХОЗЯИН РЭЯ','Рэй! Грант! Не дразните льва!']]}],
+ vet:[{bg:'vet',d:320,a:[A('tosya',-40,170,{cone:1}),A('lexi',110,110,{act:'lie'}),A('loki',-140,230)],l:[['ТОСЯ','Опять ветеринар?! Только не конус!'],['ЛЕКСИ','Я притворюсь спящей...'],['ЛОКИ','Привет, доктор! Укол? ...Ой.']]}],
+ airport:[{bg:'airport',d:240,a:[A('mom',330,330,{dir:-1}),A('dad',380,380,{dir:-1}),...DOGS3(160,false)],l:[['МАМА','Собаки полетят в багаже.'],['ВСЕ СОБАКИ','ЧТО-О-О?!']]},
+  {bg:'airport',d:160,sfx:'bark',a:[A('mom',330,330,{dir:-1}),A('dad',380,380,{dir:-1}),A('tosya',160,520),A('lexi',105,470),A('loki',215,560)],l:[['ЛОКИ','Бежим, пока не сдали!']]}],
+ winter:[{bg:'winter',d:320,a:[A('grayman',380,380,{dir:-1}),...DOGS3(150)],l:[['ЛОКИ','Бесплатное мороженое! *хрум-хрум*'],['ЛЕКСИ','Можно я полежу в сугробе?'],['ХОЗЯИН РЭЯ','Рэй! Грант! С Новым годом!']]}],
+ build:[{bg:'build',d:300,a:[A('pigeon',330,330),A('worker',420,420,{dir:-1}),A('tosya',-40,150),A('lexi',-90,95),A('loki',-140,300,{jump:1})],l:[['ЛОКИ','ГОЛУБЬ!!!'],['ТОСЯ','Локи, стой! Там стройка!'],['СТРОИТЕЛЬ','Собакам без каски нельзя!']]}],
+ space:[{bg:'space',d:300,a:[A('rocket',330),...DOGS3(150)],l:[['ТОСЯ','Нас взяли в космонавты!'],['ЛЕКСИ','А в невесомости можно полежать?'],['ЛОКИ','ПОЕХАЛИ!']]},
+  {bg:'space',d:170,shake:6,sfx:'boom',a:[A('rocket',330,330,{lift:1})],l:[['','Ракета «Гав-1» летит на Луну!']]}],
+ stairs:[{bg:'stairs',d:320,a:[A('phonelady',380,380,{dir:-1}),A('buba',425,425,{dir:-1}),...DOGS3(150)],l:[['ЛЕКСИ','Пятый этаж... пешком?!'],['ТОСЯ','Лифт опять сломался.'],['СВЕТА','Алло? Лифт? Он какой-то... живой!']]}]};
+const CS_SPEAK={'ТОСЯ':'tosya','ЛЕКСИ':'lexi','ЛОКИ':'loki'};
+function csFor(){const L0=LEVELS[G.level];return L0&&CUT[L0.theme]}
+function csShot(){const cs=csFor();let t=G.t;for(let i=0;i<cs.length;i++){if(t<cs[i].d)return[i,t,cs[i]];t-=cs[i].d}return[cs.length,0,null]}
+function csSprite(a,t,mv){const k=a.k;
+ if(DOGS[k])return null;
+ if(k==='mom'||k==='dad'||k==='kid'){const look=k==='mom'?CS_MOM:k==='dad'?CS_DAD:CS_KID,s=mv?[0,1,2,1,0,-1,-2,-1][(t>>2)&7]:0;return sprite(`csh|${k}|${s}`,40,52,20,47,()=>human(look,{s}))}
+ if(k==='car'){const b=(t>>2)%2;return sprite(`cscar|${b}`,120,70,60,62,()=>{R(-46,-26,92,18,'#e53935');R(-46,-26,92,2,'#ff7a6a');R(-32,-42,60,16,'#e53935');R(-28,-39,24,12,'#bfe3ff');R(0,-39,24,12,'#bfe3ff');R(-34,-50,64,6,'#8d6e63');R(-30,-54,20,4,'#5d4037');R(4,-54,22,4,'#1565c0');
+  ctx.drawImage(headSprite('tosya').c,-30,-44);ctx.drawImage(headSprite('loki').c,-3,-44);ctx.drawImage(headSprite('lexi').c,26,-46);R(46,-22,3,4,'#ffeb3b');R(-47,-22,2,4,'#ff1744');
+  for(const wx of [-28,28]){circ(wx,-8,8,'#212121');circ(wx,-8,3,'#9e9e9e');R(wx-1,-12+b*6,2,2,'#616161')}})}
+ if(k==='rocket')return sprite('dc|rocket',DECOW.rocket+20,170,10,160,()=>decoShape('rocket'));
+ const e={type:k,t,vx:mv?1:0,dir:a.dir||1,stun:0,onGround:true,angry:false,v:1,kindF:a.f||'lemon',lunge:0,mouth:0,throwT:0,sweep:0,palI:0,lkey:'cs'+k,cd:30,slide:false,puff:false,state:'hover',x:0,y:0,w:20,h:20};
+ if(k==='parrot')e.fly=true;
+ return(EXTRA_SPR[k]&&EXTRA_SPR[k](e))||enemySprite(e)||extraSprite(e)}
+function csRender(){const c=MAIN;const[si,t,sh]=csShot();if(!sh)return;
+ const sx=shake?Math.round((Math.random()-.5)*shake*2):0;c.save();c.translate(sx,0);
+ bgScroll(sh.bg,sh.scroll||0);if(sh.night){c.fillStyle='rgba(5,5,24,'+sh.night+')';c.fillRect(0,0,W,H)}
+ const per=sh.l.length?sh.d/sh.l.length:sh.d,li=Math.min(sh.l.length-1,t/per|0),spk=sh.l.length?CS_SPEAK[sh.l[li][0]]:null;
+ for(const a of sh.a){const k=t/(sh.d*(a.slow?.9:.5)),p=Math.min(1,k),x=a.x0+(a.x1-a.x0)*p,mv=p<1&&a.x0!==a.x1;
+  let y=GY-(a.y||0);if(a.jump)y-=Math.round(Math.abs(Math.sin(t*.15+a.x0))*14);if(a.lift)y-=Math.round(t*t*.012);
+  const dir=a.dir||(a.x1<a.x0?-1:1);
+  if(DOGS[a.k]){const talk=spk===a.k&&(t>>3)%2;blit(dogSprite(DOGS[a.k],{f:mv?(t>>2)%4:0,air:a.jump&&!a.y?2:0,act:a.act==='lie'?'lie':'',wag:(t>>2)%4,tongue:a.k==='loki',mouth:talk,blink:a.act==='lie'&&!talk&&a.k==='lexi',belly:a.act==='belly',dr:(t>>4)%3}),x,y,dir,{sc:1.5});
+   if(a.cone)drawConeAt(x+dir*12,y-30,1.5)}
+  else{const s=csSprite(a,t,mv);if(s)blit(s,x,y,a.k==='car'||a.k==='rocket'?1:dir,{sc:a.k==='rocket'?1:1.5});
+   if(a.k==='rocket'&&a.lift)for(let i=0;i<4;i++)R(x+42+rnd(-6,6)|0,y-30+rnd(0,20)|0,4,4,['#ffab40','#ffeb3b','#ff5722'][i%3]);
+   if(a.k==='car'&&t%6===0)parts.push({x:x-80,y:GY-6,vx:-2,vy:-.3,g:0,life:20,c:'#ffffff88',s:3})}}
+ if(sh.bubbles&&t%5===0)parts.push({x:rnd(0,W),y:GY,vx:0,vy:-rnd(.6,1.4),g:0,life:140,c:'#b3e5fc88',s:2});
+ for(const q of parts){if(q.heart)continue;R(q.x|0,q.y|0,q.s,q.s,q.c)}
+ c.restore();
+ if(sh.l.length){const[who,str]=sh.l[li],n=Math.min(str.length,(t-li*per)*.9|0);panel(10,8,460,46);const off=who?(who.length+2)*8:0;if(who)txt(who+':',20,16,8,'#ffe066');
+  const ls=wrap(str.slice(0,n),440-off,8);ls.forEach((l,k)=>txt(l,20+off,16+k*12,8,'#ffffff'))}
+ txt((G.level+1)+'. '+LEVELS[G.level].name,W-8,H-24,5,'#ffffffcc','right','');txt('ENTER - пропустить',W-8,H-12,5,'#ffffffaa','right','')}
+function csStep(){G.t++;const cs=csFor();if(!cs){G.state='story';G.t=0;return}
+ if(G.t>20&&(M.ok()||M.back()||pressed.jump||pressed.start||pressed.paw)){G.state='story';G.t=0;parts=[];return}
+ const[si,t,sh]=csShot();if(!sh){G.state='story';G.t=0;parts=[];return}
+ if(t===0){if(sh.shake)shake=sh.shake;const f={bark:()=>S.bark(1.1),boom:()=>S.boom(),splash:()=>S.splash(),honk:()=>S.boss()}[sh.sfx];if(f)f();if(sh.sfx==='splash')burst(260,GY,20,['#bfe9ff','#ffffff'],3,.15,30,2)}
+ if(sh.l.length){const per=sh.d/sh.l.length,li=Math.min(sh.l.length-1,t/per|0),ct=(t-li*per)*.9|0;if(ct>0&&ct<sh.l[li][1].length&&ct%3===0)tone(880,.02,'square',.012)}
+ if(shake>0)shake*=.88;if(shake<.3)shake=0;updParts()}
+// flow: story screens are preceded by the level's cutscene (once per level); vacuum level uses the big intro
+{const _ng=newGame;newGame=function(lv){_ng(lv);G.csDone=-1};
+ const _st=step;step=function(){
+  if(G.state==='story'&&G.csDone!==G.level){G.csDone=G.level;parts=[];shake=0;const th=LEVELS[G.level].theme;
+   if(th==='home'){G.state='intro';G.t=0;G.introThen='story';playSong('home')}else if(CUT[th]){G.state='cs';G.t=0;playSong(LEVELS[G.level].song)}}
+  if(G.state==='cs'){frame++;pollPad();csStep();for(const k in pressed)delete pressed[k];raw={};return}
+  _st()};
+ const _rn=render;render=function(){if(G.state==='cs'){ctx=MAIN;MAIN.setTransform(1,0,0,1,0,0);MAIN.imageSmoothingEnabled=false;csRender();drawToast();return}_rn()};
+ const _tt=toTitle;toTitle=function(){if(G.introThen==='story'){G.introThen=null;G.state='story';G.t=0;parts=[];playSong('title');return}_tt()};
+ const _is=introStep;introStep=function(){if(G.state==='press'){G.t++;if(Object.keys(pressed).length||Object.keys(raw).length){initAudio();G.state='title';G.t=0;G.mrow=0;playSong('title');S.coin()}return}_is()}}
+
+// ================= v2.4: cutscene gallery =================
+function galleryPlay(i){G.level=i;G.t=0;parts=[];shake=0;G.galleryReturn=true;const th=LEVELS[i].theme;
+ if(th==='home'){G.state='intro';G.introThen='gallery';playSong('home')}else{G.state='cs';playSong(LEVELS[i].song)}}
+function galleryBack(){if(G.galleryAll&&G.level<LEVELS.length-1){galleryPlay(G.level+1);return}G.galleryAll=false;G.galleryReturn=false;G.state='gallery';G.t=0;parts=[];playSong('title')}
+function drawGallery(){bgScroll('forest',.5);panel(14,4,452,262);txt('ЗАСТАВКИ',W/2,10,8,'#ffe066','center');
+ const n=LEVELS.length,half=Math.ceil(n/2);
+ LEVELS.forEach((l,i)=>{const col=i<half?0:1,row=col?i-half:i,x=38+col*216,y=24+row*15,sel=G.mrow===i;if(sel)drawBoneIcon(x-16,y,'#ffe066');
+  const nm=l.name.length>18?l.name.slice(0,17)+'.':l.name;txt((i+1)+'.',x,y,8,sel?'#ffe066':'#ffffff');txt(nm,x+26,y,8,sel?'#ffe066':'#ffffff')});
+ const by=24+half*15+4;[['СМОТРЕТЬ ВСЕ ПОДРЯД',n],['НАЗАД',n+1]].forEach(([s,i],k)=>{const sel=G.mrow===i;if(sel)drawBoneIcon(22,by+k*14,'#ffe066');txt(s,38,by+k*14,8,sel?'#ffe066':'#ffffff')})}
+{const _st=step;step=function(){
+  if(G.galleryReturn&&G.state==='story'){galleryBack()}
+  if(G.state==='gallery'){frame++;pollPad();G.t++;const n=LEVELS.length+2,h=Math.ceil(LEVELS.length/2);menuNav(n);
+   if(M.right()&&G.mrow<h&&G.mrow+h<LEVELS.length){G.mrow+=h;S.menu()}else if(M.left()&&G.mrow>=h&&G.mrow<LEVELS.length){G.mrow-=h;S.menu()}
+   if(M.back()){G.state='title';G.mrow=0}
+   else if(M.ok()){S.coin();if(G.mrow<LEVELS.length){G.galleryAll=false;galleryPlay(G.mrow)}else if(G.mrow===LEVELS.length){G.galleryAll=true;galleryPlay(0)}else{G.state='title';G.mrow=0}}
+   for(const k in pressed)delete pressed[k];raw={};return}
+  _st()};
+ const _rn=render;render=function(){if(G.state==='gallery'){ctx=MAIN;MAIN.setTransform(1,0,0,1,0,0);MAIN.imageSmoothingEnabled=false;drawGallery();drawToast();return}_rn()};
+ const _tt=toTitle;toTitle=function(){if(G.introThen==='gallery'){G.introThen=null;galleryBack();return}_tt()};
+ const _ti=titleItems;titleItems=function(){return _ti().map(it=>it.t==='ЗАСТАВКА'?{t:'ЗАСТАВКИ',f:()=>{G.state='gallery';G.mrow=0}}:it)}}
+
 // ================= RENDER =================
 function drawWeather(){if(!L)return;
  if(L.snow){for(const f of weather){f.y+=.4+f.s*.6;f.x+=Math.sin((frame+f.p*60)*.02)*.3;if(f.y>H){f.y=-4;f.x=Math.random()*W}const sx=((f.x-cam*(.3+f.s*.4))%W+W)%W;R(sx|0,f.y|0,f.s>.7?2:1,f.s>.7?2:1,'#ffffff')}}
@@ -2400,10 +2667,10 @@ function renderMain(){
   blit(s,cx,e.dying?by-e.h/2:by,e.dir,{white:e.flash>0&&frame%2,rot:e.dying?Math.PI:0});
   if(e.stun>0&&!e.dying)stars(cx,e.y-6,8)}
  if(boss){if(boss.onGround||boss.kind==='plow')shadow(boss.x+boss.w/2,boss.y+boss.h,boss.w);drawBoss(boss)}
- drawPlayer();if(L.water)drawWaterFront();
+ drawPlayer();for(const tp of plats)if(tp.kind==='tunnel'&&tp.x<c+W&&tp.x+tp.w>c)drawTunnelFront(tp);if(L.water)drawWaterFront();
  for(const pr of projs)drawProj(pr);
  for(const q of parts){if(q.heart)continue;R(q.x|0,q.y|0,q.s,q.s,q.c)}
- for(const q of pops){ctx.globalAlpha=Math.min(1,(60-q.t)/20);txt(q.s,Math.round(q.x),Math.round(q.y-q.t*.4),8,q.c);ctx.globalAlpha=1}
+ for(const q of pops)drawPopX(q);
  MAIN.setTransform(1,0,0,1,0,0);
  for(const l of th.fg)drawStrip(l.c,l.f,l.y);
  drawWeather();if(L.dark)drawDark(c);drawHUD();
