@@ -2277,6 +2277,7 @@ Object.assign(BOSS_DRAW,{
     if(op){R(-30,-34,16,10,'#eeeeee');R(14,-34,16,10,'#eeeeee')}else R(-18,-24,8,6,'#e0e0e0');R(6,-50,6,26,'#fafafa');circ(9,-50,7,'#fafafa');R(14,-50,10,op?2:4,'#ff9800');if(op)R(14,-46,10,2,'#ff9800');R(10,-54,2,2,'#e53935');R(8,-56,5,1,'#212121')}});
   blit(s,b.x+b.w/2,b.y+b.h,b.dir,{white});if(st==='tired')stars(b.x+b.w/2,b.y+14,14)}});
 
+var CS_SPD=.5;
 // ================= v1.7: Dendy-style intro cutscene =================
 const INTRO=[
  {d:300,lines:[['','Ночь. Все спят...'],['ЛЕКСИ','Хррр... сосисочки... хррр...']]},
@@ -2284,6 +2285,7 @@ const INTRO=[
  {d:260,lines:[['ЛОКИ','ПРИВЕЕЕТ!!! Гулять? Гулять?! ГУЛЯТЬ?!']]},
  {d:330,lines:[['','Но тут в коридоре что-то загудело...'],['ВСЕ','ГАВ-ПАТРУЛЬ, ПОДЪЁМ!']]},
  {d:220,lines:[]}];
+for(const sc of INTRO)if(sc.lines.length){const m=Math.max(...sc.lines.map(l=>l[1].length));sc.d=Math.max(sc.d,Math.round(sc.lines.length*(m/CS_SPD+70)))}
 const INTRO_LEN=INTRO.reduce((s,x)=>s+x.d,0);
 G.state='press';G.t=0;
 function introScene(){let t=G.t;for(let i=0;i<INTRO.length;i++){if(t<INTRO[i].d)return[i,t];t-=INTRO[i].d}return[INTRO.length,0]}
@@ -2300,7 +2302,7 @@ function introStep(){G.t++;
  if(s===3&&t===165){S.win();shake=6}
  if(s===4&&t===1){burst(W/2,H/2,40,['#ffffff','#ffe066','#ff6b9a','#6bd5ff'],4,.05,60,3)}
  if(s===4&&t===60)S.oneup();
- const sc=INTRO[s];if(sc&&sc.lines.length){const per=sc.d/sc.lines.length,li=Math.min(sc.lines.length-1,t/per|0),ct=(t-li*per)*.9|0;if(ct>0&&ct<sc.lines[li][1].length&&ct%3===0)tone(880,.02,'square',.012)}
+ const sc=INTRO[s];if(sc&&sc.lines.length){const per=sc.d/sc.lines.length,li=Math.min(sc.lines.length-1,t/per|0),ct=(t-li*per)*CS_SPD|0;if(ct>0&&ct<sc.lines[li][1].length&&ct%3===0)tone(880,.02,'square',.012)}
  if(shake>0)shake*=.85;if(shake<.3)shake=0;updParts()}
 function drawConeAt(x,y,s,a){// x,y = neck point; s = scale; a = rotation
  const c=MAIN;c.save();c.translate(Math.round(x),Math.round(y));c.rotate(a||0);c.scale(s,s);c.globalAlpha=.55;c.fillStyle='#dfe9f2';c.beginPath();c.moveTo(0,-8);c.lineTo(16,-18);c.lineTo(16,18);c.lineTo(0,8);c.fill();c.globalAlpha=1;
@@ -2318,7 +2320,7 @@ function drawCrate(x,open){const c=MAIN;R(x+2,GY-10,116,10,'#a8a8b4');R(x+2,GY-1
  c.fillStyle='#1a1a1a';for(let i=0;i<=120;i+=8){if(open&&i>=88)continue;c.fillRect(x+i,GY-74,2,74)}c.fillRect(x,GY-76,122,3);c.fillRect(x,GY-52,122,2);c.fillRect(x,GY-28,open?88:122,2);c.fillRect(x,GY-2,122,2);
  if(open){c.save();c.translate(x+88,GY);c.rotate(-.9);for(let i=0;i<=32;i+=8)c.fillRect(i,-74,2,74);c.fillRect(0,-76,34,3);c.restore()}}
 function drawLamp(x){R(x-1,GY-90,3,90,'#3a3a3a');R(x-8,GY-3,18,3,'#3a3a3a');MAIN.fillStyle='#f5e6c8';MAIN.beginPath();MAIN.moveTo(x-8,GY-112);MAIN.lineTo(x+9,GY-112);MAIN.lineTo(x+17,GY-90);MAIN.lineTo(x-16,GY-90);MAIN.fill();R(x-16,GY-91,33,2,'#c8a878');circ(x,GY-86,12,'#fff3b022')}
-function introText(s,t){const sc=INTRO[s];if(!sc||!sc.lines.length)return;const per=sc.d/sc.lines.length,li=Math.min(sc.lines.length-1,t/per|0),[who,str]=sc.lines[li],n=Math.min(str.length,(t-li*per)*.9|0);
+function introText(s,t){const sc=INTRO[s];if(!sc||!sc.lines.length)return;const per=sc.d/sc.lines.length,li=Math.min(sc.lines.length-1,t/per|0),[who,str]=sc.lines[li],n=Math.min(str.length,(t-li*per)*CS_SPD|0);
  panel(10,8,460,46);if(who)txt(who+':',20,16,8,'#ffe066');const ls=wrap(str.slice(0,n),who?440-(who.length+2)*8:440,8);ls.forEach((l,k)=>txt(l,who?20+(who.length+2)*8:20,16+k*12,8,'#ffffff'))}
 function introRender(){const c=MAIN;
  if(G.state==='press'){R(0,0,W,H,'#0b0716');for(let i=0;i<60;i++)R(hash(i)*W|0,hash(i+9)*H|0,1,1,(i+frame>>4)%3?'#ffffff55':'#ffffffcc');
@@ -2578,14 +2580,14 @@ function csRender(){const c=MAIN;const[si,t,sh]=csShot();if(!sh)return;
  if(sh.bubbles&&t%5===0)parts.push({x:rnd(0,W),y:GY,vx:0,vy:-rnd(.6,1.4),g:0,life:140,c:'#b3e5fc88',s:2});
  for(const q of parts){if(q.heart)continue;R(q.x|0,q.y|0,q.s,q.s,q.c)}
  c.restore();
- if(sh.l.length){const[who,str]=sh.l[li],n=Math.min(str.length,(t-li*per)*.9|0);panel(10,8,460,46);const off=who?(who.length+2)*8:0;if(who)txt(who+':',20,16,8,'#ffe066');
+ if(sh.l.length){const[who,str]=sh.l[li],n=Math.min(str.length,(t-li*per)*CS_SPD|0);panel(10,8,460,46);const off=who?(who.length+2)*8:0;if(who)txt(who+':',20,16,8,'#ffe066');
   const ls=wrap(str.slice(0,n),440-off,8);ls.forEach((l,k)=>txt(l,20+off,16+k*12,8,'#ffffff'))}
  txt((G.level+1)+'. '+LEVELS[G.level].name,W-8,H-24,5,'#ffffffcc','right','');txt('ENTER - пропустить',W-8,H-12,5,'#ffffffaa','right','')}
 function csStep(){G.t++;const cs=csFor();if(!cs){G.state='story';G.t=0;return}
  if(G.t>20&&(M.ok()||M.back()||pressed.jump||pressed.start||pressed.paw)){G.state='story';G.t=0;parts=[];return}
  const[si,t,sh]=csShot();if(!sh){G.state='story';G.t=0;parts=[];return}
  if(t===0){if(sh.shake)shake=sh.shake;const f={bark:()=>S.bark(1.1),boom:()=>S.boom(),splash:()=>S.splash(),honk:()=>S.boss()}[sh.sfx];if(f)f();if(sh.sfx==='splash')burst(260,GY,20,['#bfe9ff','#ffffff'],3,.15,30,2)}
- if(sh.l.length){const per=sh.d/sh.l.length,li=Math.min(sh.l.length-1,t/per|0),ct=(t-li*per)*.9|0;if(ct>0&&ct<sh.l[li][1].length&&ct%3===0)tone(880,.02,'square',.012)}
+ if(sh.l.length){const per=sh.d/sh.l.length,li=Math.min(sh.l.length-1,t/per|0),ct=(t-li*per)*CS_SPD|0;if(ct>0&&ct<sh.l[li][1].length&&ct%3===0)tone(880,.02,'square',.012)}
  if(shake>0)shake*=.88;if(shake<.3)shake=0;updParts()}
 // flow: story screens are preceded by the level's cutscene (once per level); vacuum level uses the big intro
 {const _ng=newGame;newGame=function(lv){_ng(lv);G.csDone=-1};
@@ -3110,14 +3112,15 @@ LEVELS.find(l=>l.theme==='park').story=LEVELS.find(l=>l.theme==='park').story.re
  LEVELS.length=0;CLEARMSG.length=0;for(const [l,m] of [first,...mid,last]){LEVELS.push(l);CLEARMSG.push(m)}}
 try{save=clamp(+localStorage.getItem('tosya_lvl')||0,0,LEVELS.length-1)}catch(e){}
 // ---- menus with 3 columns (36 levels) ----
-const COLS=3;let ROWS=Math.ceil(LEVELS.length/COLS);
-function levelGrid(sel,lockFrom,x0,y0){LEVELS.forEach((l,i)=>{const col=i/ROWS|0,row=i%ROWS,x=x0+col*152,y=y0+row*17,on=sel===i,lock=i>lockFrom;if(on)drawBoneIcon(x-15,y,'#ffe066');
+const COLS=3;function RH(){return ROWS>13?15:17}
+let ROWS=Math.ceil(LEVELS.length/COLS);
+function levelGrid(sel,lockFrom,x0,y0){LEVELS.forEach((l,i)=>{const col=i/ROWS|0,row=i%ROWS,x=x0+col*152,y=y0+row*RH(),on=sel===i,lock=i>lockFrom;if(on)drawBoneIcon(x-15,y,'#ffe066');
  const nm=l.name.length>14?l.name.slice(0,13)+'.':l.name,c=on?'#ffe066':lock?'#777777':'#ffffff';txt((i+1)+'.',x,y,8,c);txt(nm,x+(i<9?18:26),y,8,c)})}
 function gridNav(n){menuNav(n);if(G.mrow<LEVELS.length){if(M.right()&&G.mrow+ROWS<LEVELS.length){G.mrow+=ROWS;S.menu()}else if(M.left()&&G.mrow>=ROWS){G.mrow-=ROWS;S.menu()}}}
 drawSelect=function(){bgScroll('city',.6);panel(4,4,472,262);txt('ВЫБОР УРОВНЯ',W/2,10,8,'#ffe066','center');levelGrid(G.mrow,save,22,26);
- const by=26+ROWS*17+4,on=G.mrow===LEVELS.length;if(on)drawBoneIcon(8,by,'#ffe066');txt('НАЗАД',22,by,8,on?'#ffe066':'#ffffff');txt('←→ колонки   серые ещё закрыты',W-12,by+2,5,'#aaaaaa','right','')};
+ const by=26+ROWS*RH()+4,on=G.mrow===LEVELS.length;if(on)drawBoneIcon(8,by,'#ffe066');txt('НАЗАД',22,by,8,on?'#ffe066':'#ffffff');txt('←→ колонки   серые ещё закрыты',W-12,by+2,5,'#aaaaaa','right','')};
 drawGallery=function(){bgScroll('forest',.5);panel(4,4,472,262);txt('ЗАСТАВКИ',W/2,10,8,'#ffe066','center');levelGrid(G.mrow,1e9,22,26);
- const by=26+ROWS*17+4;[['СМОТРЕТЬ ВСЕ',LEVELS.length,22],['НАЗАД',LEVELS.length+1,190]].forEach(([s,i,x])=>{const on=G.mrow===i;if(on)drawBoneIcon(x-15,by,'#ffe066');txt(s,x,by,8,on?'#ffe066':'#ffffff')})};
+ const by=26+ROWS*RH()+4;[['СМОТРЕТЬ ВСЕ',LEVELS.length,22],['НАЗАД',LEVELS.length+1,190]].forEach(([s,i,x])=>{const on=G.mrow===i;if(on)drawBoneIcon(x-15,by,'#ffe066');txt(s,x,by,8,on?'#ffe066':'#ffffff')})};
 {const _st=step;step=function(){
  if(G.state==='select'){frame++;pollPad();const n=LEVELS.length+1;gridNav(n);if(M.back()){G.state='title';G.mrow=0}
   else if(M.ok()){if(G.mrow===LEVELS.length){G.state='title';G.mrow=0}else if(G.mrow<=save){S.coin();newGame(G.mrow)}else S.clink()}for(const k in pressed)delete pressed[k];raw={};return}
@@ -3272,7 +3275,7 @@ function bigActor(k,st,t,cx,fy,sc,talk){ctx=MAIN;const d=DOGS[k]||DOGX[k];
  if(d){blit(dogSprite(d,{f:0,air:0,act:st==='lie'?'lie':'',wag:(t>>2)%4,mouth:talk&&(t>>3)%2,tongue:k==='loki'&&!talk,blink:(st==='lie'&&!talk)||(t%140)<6,dr:(t>>4)%3}),cx,fy,1,{sc})}
  else{const s=csSprite({k,st,dir:1},t,false);if(s)blit(s,cx,fy-(talk?((t>>3)%2)*2:0),1,{sc})}}
 function csSpeaker(sh,t){if(!sh.l.length)return null;const per=sh.d/sh.l.length,li=Math.min(sh.l.length-1,t/per|0);return sh.l[li][0]}
-function csText(sh,t){if(sh.l.length){const per=sh.d/sh.l.length,li=Math.min(sh.l.length-1,t/per|0),[who,str]=sh.l[li],n=Math.min(str.length,(t-li*per)*.9|0);panel(10,8,460,46);const off=who?(who.length+2)*8:0;if(who)txt(who+':',20,16,8,'#ffe066');
+function csText(sh,t){if(sh.l.length){const per=sh.d/sh.l.length,li=Math.min(sh.l.length-1,t/per|0),[who,str]=sh.l[li],n=Math.min(str.length,(t-li*per)*CS_SPD|0);panel(10,8,460,46);const off=who?(who.length+2)*8:0;if(who)txt(who+':',20,16,8,'#ffe066');
   wrap(str.slice(0,n),440-off,8).forEach((l,k)=>txt(l,20+off,16+k*12,8,'#ffffff'))}
  txt((G.level+1)+'. '+LEVELS[G.level].name,W-8,H-24,5,'#ffffffcc','right','');txt('ENTER - пропустить',W-8,H-12,5,'#ffffffaa','right','')}
 function csClose(sh,t){const c=sh.close,col=sh.col||['#ffd54f','#ffe9a0'],isDog=!!(DOGS[c.k]||DOGX[c.k]);ctx=MAIN;MAIN.setTransform(1,0,0,1,0,0);speedBG(0,0,W,H,col[0],col[1],t);
@@ -3334,6 +3337,253 @@ for(const k in MORE)if(CUT[k])CUT[k].push(...MORE[k]);
 const INS0={city:{k:'loki',from:.6,cap:'ЛОКИ',word:'ЕСТЬ!'},metro:{k:'lexi',from:.5,cap:'ЛЕКСИ',word:'ОХ...'},candy:{k:'loki',from:.5,cap:'ЛОКИ',word:'НЯМ!'},vet:{k:'tosya',from:.3,to:.66,cap:'ТОСЯ',word:'НЕТ!'},
  museum:{k:'loki',from:.6,cap:'ЛОКИ',word:'А-А-А!'},stairs:{k:'lexi',from:.2,to:.5,cap:'ЛЕКСИ',word:'ПЕШКОМ?!'},cinema:{k:'stepa',from:.6,cap:'СТЁПА',word:'ПОПКОРН!'},dream:{k:'lexi',from:.6,st:'lie',cap:'ЛЕКСИ СПИТ',word:'Zzz'}};
 for(const k in INS0)if(CUT[k]&&!CUT[k][0].ins)CUT[k][0].ins=[INS0[k]];
+
+// ================= v2.9: costumes & accessories per level, slower cutscene text =================
+let COST=null;
+const COSTUME_OF={ocean:'scuba',egypt:'nemes',school:'backpack',cinema:'glasses3d',rock:'rockstar',space:'astro',winter:'knit',city:'knit',plaza:'scarf',beach:'sunhat',aqua:'swimring',
+ pirate:'pirate',west:'cowboy',castle:'knight',spooky:'witch',circus:'clown',candy:'chef',jungle:'safari',zoo:'safari',dream:'nightcap',home:'nightcap',library:'nerd',wash:'showercap',
+ museum:'explorer',groom:'bow',show:'medal',airport:'pilot',build:'hardhat',metro:'headphones',village:'straw',river:'lifevest',forest:'scout',market:'basket',stairs:'scarf',
+ roofs:'hero',rink:'knit2',luna:'party',mount:'ski',mine:'miner',theater:'tophat'};
+const COSTUME_NAME={scuba:'маски и акваланги',nemes:'египетские платки',backpack:'рюкзачки',glasses3d:'3D-очки',rockstar:'прикиды рок-звёзд',astro:'скафандры',knit:'шапки и шарфы',scarf:'шарфики',sunhat:'панамы и очки',swimring:'круги и очки',pirate:'пиратские банданы',cowboy:'ковбойские шляпы',knight:'рыцарские шлемы',witch:'шляпы ведьм',clown:'клоунские носы',chef:'поварские колпаки',safari:'пробковые шлемы',nightcap:'ночные колпаки',nerd:'очки и бабочки',showercap:'шапочки для душа',explorer:'шлемы с фонариком',bow:'бантики',medal:'медали',pilot:'шлемы пилотов',hardhat:'каски',headphones:'наушники',straw:'соломенные шляпы',lifevest:'спасжилеты',scout:'скаутские галстуки',basket:'корзинки',hero:'плащи супергероев',knit2:'шапки и шарфы',party:'праздничные колпаки',ski:'горнолыжные очки',miner:'шахтёрские каски',tophat:'цилиндры и бабочки'};
+function costGeo(d,p){const lie=p.act==='lie',dash=p.act==='dash',lg=lie?1:d.leg,bl=d.bl,bh=d.bh,x0=-(bl>>1),x1=x0+bl,top=-(lg+bh),hx=x1-4+(dash?2:0)+(lie?1:0),hy=top-d.hh+3+(lie?2:0)+(p.act==='drool'?(p.f%2?-1:1):0);
+ return{lie,bl,bh,x0,x1,top,hx,hy,hw:d.hw,hh:d.hh,ex:hx+d.hw-4,ey:hy+2,mx:hx+d.hw-2,my:hy+d.hh-5,cx:hx+(d.hw>>1)}}
+const tri=(ax,ay,bx,by,cx,cy,c)=>{ctx.fillStyle=c;ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(bx,by);ctx.lineTo(cx,cy);ctx.fill()};
+const COSTUMES={
+ knit(g){R(g.hx-1,g.hy-4,g.hw+1,5,'#e53935');for(let i=0;i<g.hw;i+=3)R(g.hx+i,g.hy-3,1,3,'#c62828');R(g.hx-1,g.hy-1,g.hw+1,2,'#ffffff');circ(g.cx,g.hy-6,2.5,'#ffffff');COSTUMES.scarf(g)},
+ knit2(g){R(g.hx-1,g.hy-4,g.hw+1,5,'#7b1fa2');R(g.hx-1,g.hy-1,g.hw+1,2,'#ffffff');circ(g.cx,g.hy-6,2.5,'#f8bbd0');R(g.hx-3,g.top-2,6,4,'#ec407a');R(g.hx-6,g.top+1,4,7,'#ec407a');R(g.hx-6,g.top+6,4,1,'#ffffff')},
+ scarf(g){R(g.hx-3,g.top-2,6,4,'#1e88e5');R(g.hx-6,g.top+1,4,7,'#1e88e5');R(g.hx-6,g.top+3,4,1,'#ffffff');R(g.hx-6,g.top+6,4,1,'#ffffff')},
+ nemes(g){R(g.hx-2,g.hy-3,g.hw+3,5,'#ffd54f');for(let i=0;i<g.hw+3;i+=2)R(g.hx-2+i,g.hy-3,1,5,'#1565c0');R(g.hx-4,g.hy,4,g.hh+3,'#ffd54f');for(let y=0;y<g.hh+3;y+=2)R(g.hx-4,g.hy+y,4,1,'#1565c0');R(g.hx+g.hw-3,g.hy-6,2,3,'#ffb300');R(g.hx+g.hw-3,g.hy-6,1,1,'#e53935')},
+ backpack(g){const x=g.x0+(g.bl*.18|0),w=Math.max(8,g.bl*.42|0);R(x,g.top-7,w,9,'#e53935');R(x,g.top-7,w,2,'#ef5350');R(x+2,g.top-3,w-4,4,'#c62828');R(x+w/2-1,g.top-2,2,1,'#ffeb3b');R(x+w-1,g.top-4,3,g.bh,'#b71c1c');R(x-1,g.top-4,2,g.bh,'#b71c1c')},
+ glasses3d(g){R(g.ex-4,g.ey-1,9,4,'#ffffff');R(g.ex-3,g.ey,3,2,'#e53935');R(g.ex+1,g.ey,3,2,'#1e88e5');R(g.hx+1,g.ey,g.ex-g.hx-5,1,'#ffffff')},
+ rockstar(g){for(let i=0;i<5;i++)R(g.hx+1+i*2,g.hy-3-(i%2)*2,2,4+(i%2)*2,'#ff1744');R(g.ex-3,g.ey,7,2,'#111111');R(g.ex-3,g.ey-1,7,1,'#555555');R(g.hx-3,g.top-2,5,6,'#212121');for(let y=0;y<6;y+=2)R(g.hx-2,g.top-2+y,1,1,'#e0e0e0');R(g.x1-12,g.top,8,g.bh-1,'#212121');R(g.x1-12,g.top,1,g.bh-1,'#555555');R(g.x1-9,g.top+2,1,1,'#e0e0e0')},
+ astro(g){ctx.fillStyle='#b3e5fc44';ctx.beginPath();ctx.arc(g.cx+1,g.hy+g.hh/2,g.hh*.9+3,0,7);ctx.fill();ctx.strokeStyle='#e3f2fd';ctx.lineWidth=1;ctx.stroke();R(g.cx-3,g.hy-4,2,2,'#ffffff');R(g.x0+3,g.top-6,9,7,'#eceff1');R(g.x0+4,g.top-5,2,5,'#90a4ae');R(g.hx-3,g.top-2,5,4,'#cfd8dc')},
+ scuba(g){R(g.x0+2,g.top-6,Math.max(10,g.bl*.5|0),6,'#fdd835');R(g.x0+2,g.top-6,Math.max(10,g.bl*.5|0),1,'#fff59d');R(g.x0,g.top-5,2,4,'#9e9e9e');R(g.ex-3,g.ey-1,8,4,'#212121');R(g.ex-2,g.ey,6,2,'#80deea');R(g.hx+1,g.hy-7,2,9,'#ff9800');R(g.hx+1,g.hy-8,4,2,'#ff9800')},
+ swimring(g){const cx=g.x0+(g.bl*.5|0),cy=g.top+(g.bh>>1)+1,rx=(g.bl>>1)-2,ry=(g.bh>>1)+4;for(let i=0;i<12;i++){ctx.strokeStyle=i%2?'#ffffff':'#ff5252';ctx.lineWidth=4;ctx.beginPath();ctx.ellipse(cx,cy,rx,ry,0,Math.PI*.5+i*Math.PI/12,Math.PI*.5+(i+1)*Math.PI/12);ctx.stroke()}R(g.ex-3,g.ey-1,7,3,'#00bcd4');R(g.ex-2,g.ey,2,1,'#e0f7fa')},
+ sunhat(g){R(g.hx-3,g.hy-2,g.hw+6,2,'#fff59d');R(g.hx,g.hy-5,g.hw,4,'#fff59d');R(g.hx,g.hy-2,g.hw,1,'#ff7043');R(g.ex-3,g.ey,7,2,'#212121')},
+ pirate(g){R(g.hx-1,g.hy-3,g.hw+1,4,'#c62828');for(let i=1;i<g.hw;i+=3)R(g.hx+i,g.hy-2,1,1,'#ffffff');R(g.hx-4,g.hy-1,3,3,'#c62828');R(g.hx-5,g.hy+1,2,3,'#c62828');R(g.ex-1,g.ey-1,3,3,'#111111');R(g.hx+1,g.ey-2,g.hw-4,1,'#111111')},
+ cowboy(g){R(g.hx-4,g.hy-2,g.hw+8,2,'#8d6e63');R(g.hx,g.hy-7,g.hw,5,'#8d6e63');R(g.hx,g.hy-3,g.hw,1,'#4e342e');R(g.cx-1,g.hy-7,2,1,'#6d4c41');R(g.hx-3,g.top-1,6,4,'#e53935');R(g.hx-2,g.top+3,3,2,'#e53935')},
+ knight(g){R(g.hx-1,g.hy-3,g.hw+2,g.hh-1,'#b0bec5');R(g.hx-1,g.hy-3,g.hw+2,1,'#eceff1');R(g.hx+2,g.ey,g.hw-1,1,'#263238');R(g.hx+2,g.ey+2,g.hw-1,1,'#263238');R(g.cx-1,g.hy-8,3,6,'#e53935');R(g.cx-3,g.hy-9,3,3,'#e53935')},
+ witch(g){R(g.hx-4,g.hy-1,g.hw+8,2,'#4a148c');tri(g.hx,g.hy-1,g.hx+g.hw,g.hy-1,g.cx-4,g.hy-16,'#6a1b9a');R(g.hx,g.hy-4,g.hw-1,2,'#ffeb3b')},
+ clown(g){circ(g.mx+8,g.my,2.5,'#ff1744');R(g.mx+7,g.my-2,1,1,'#ffffff');tri(g.hx+1,g.hy-1,g.hx+g.hw-1,g.hy-1,g.cx,g.hy-12,'#ffeb3b');R(g.cx-3,g.hy-6,6,1,'#e91e63');circ(g.cx,g.hy-12,2,'#e91e63');for(let i=0;i<3;i++)circ(g.hx-2,g.top-1+i*3,2.5,['#ffeb3b','#e91e63','#40c4ff'][i])},
+ chef(g){R(g.hx,g.hy-6,g.hw-1,5,'#ffffff');circ(g.hx+2,g.hy-7,3,'#ffffff');circ(g.cx,g.hy-9,3.5,'#ffffff');circ(g.hx+g.hw-3,g.hy-7,3,'#ffffff');R(g.hx,g.hy-2,g.hw-1,2,'#e0e0e0')},
+ safari(g){ell(g.cx,g.hy-1,g.hw/2+4,2,'#c8b07a');ell(g.cx,g.hy-3,g.hw/2,4,'#d7c08a');R(g.hx+1,g.hy-2,g.hw-2,1,'#6d4c41')},
+ nightcap(g){tri(g.hx,g.hy,g.hx+g.hw,g.hy,g.hx-7,g.hy+5,'#3949ab');R(g.hx,g.hy-2,g.hw,3,'#3949ab');R(g.hx,g.hy,g.hw,1,'#ffffff');circ(g.hx-7,g.hy+6,2,'#ffffff');for(let i=2;i<g.hw;i+=4)R(g.hx+i,g.hy-1,1,1,'#ffeb3b')},
+ nerd(g){ctx.strokeStyle='#212121';ctx.lineWidth=1;ctx.beginPath();ctx.arc(g.ex,g.ey+1,2.5,0,7);ctx.stroke();R(g.hx+1,g.ey,g.ex-g.hx-3,1,'#212121');R(g.hx-4,g.top-1,3,4,'#e53935');R(g.hx,g.top-1,3,4,'#e53935');R(g.hx-1,g.top,2,2,'#b71c1c')},
+ showercap(g){R(g.hx-1,g.hy-3,g.hw+2,4,'#f8bbd0');for(let i=0;i<g.hw+2;i+=2)R(g.hx-1+i,g.hy+1,1,1,'#f48fb1');R(g.hx+1,g.hy-2,1,1,'#ffffff');R(g.hx+5,g.hy-2,1,1,'#ffffff')},
+ explorer(g){COSTUMES.miner(g)},
+ miner(g){R(g.hx-1,g.hy-3,g.hw+2,3,'#fdd835');ell(g.cx,g.hy-3,g.hw/2,3,'#fdd835');R(g.hx-2,g.hy-1,g.hw+4,1,'#f9a825');circ(g.hx+g.hw,g.hy-3,2,'#fff59d');ctx.fillStyle='#fff59d33';ctx.beginPath();ctx.moveTo(g.hx+g.hw+1,g.hy-3);ctx.lineTo(g.hx+g.hw+16,g.hy-8);ctx.lineTo(g.hx+g.hw+16,g.hy+4);ctx.fill()},
+ hardhat(g){R(g.hx-1,g.hy-3,g.hw+2,3,'#ffca28');ell(g.cx,g.hy-3,g.hw/2,3,'#ffca28');R(g.hx-2,g.hy-1,g.hw+4,1,'#ffa000');R(g.x1-12,g.top+1,8,g.bh-2,'#ff9800');R(g.x1-12,g.top+3,8,1,'#fff59d')},
+ bow(g){tri(g.cx,g.hy-2,g.cx-6,g.hy-6,g.cx-6,g.hy+1,'#ec407a');tri(g.cx,g.hy-2,g.cx+6,g.hy-6,g.cx+6,g.hy+1,'#ec407a');circ(g.cx,g.hy-2,1.5,'#ad1457')},
+ medal(g){R(g.x1-4,g.top-1,1,4,'#e53935');R(g.x1-2,g.top-1,1,4,'#1e88e5');circ(g.x1-3,g.top+5,3,'#ffd54f');circ(g.x1-3,g.top+5,1.5,'#ffb300')},
+ pilot(g){R(g.hx-1,g.hy-3,g.hw+1,5,'#795548');R(g.hx-1,g.hy-3,g.hw+1,1,'#a1887f');R(g.hx-3,g.hy,3,6,'#795548');R(g.hx+2,g.hy-4,7,3,'#4fc3f7');R(g.hx+2,g.hy-4,7,1,'#212121')},
+ headphones(g){R(g.hx+1,g.hy-3,g.hw-2,1,'#212121');R(g.hx,g.hy-3,1,4,'#212121');R(g.hx-1,g.hy+1,3,5,'#e53935');R(g.hx-1,g.hy+1,3,1,'#ff8a80')},
+ straw(g){R(g.hx-4,g.hy-2,g.hw+8,2,'#ffe082');R(g.hx,g.hy-5,g.hw,4,'#ffe082');R(g.hx,g.hy-2,g.hw,1,'#e53935');for(let i=0;i<g.hw+8;i+=3)R(g.hx-4+i,g.hy-1,1,1,'#ffca28')},
+ lifevest(g){R(g.x1-14,g.top-1,10,g.bh+1,'#ff6d00');R(g.x1-14,g.top+3,10,1,'#e0e0e0');R(g.x1-14,g.top-1,10,1,'#ff9e40')},
+ scout(g){tri(g.hx-4,g.top-2,g.hx+2,g.top-2,g.hx-1,g.top+6,'#2e7d32');R(g.hx-2,g.top-1,2,2,'#ffd54f')},
+ basket(g){R(g.x0+3,g.top-6,10,6,'#c8a070');for(let x=0;x<10;x+=2)R(g.x0+3+x,g.top-6,1,6,'#a07848');ctx.strokeStyle='#a07848';ctx.lineWidth=1;ctx.beginPath();ctx.arc(g.x0+8,g.top-6,5,Math.PI,0);ctx.stroke();circ(g.x0+6,g.top-7,2,'#e53935');circ(g.x0+10,g.top-7,2,'#8bc34a')},
+ hero(g){tri(g.hx-2,g.top-1,g.x0-10,g.top+g.bh+3,g.x0+4,g.top+g.bh+1,'#e53935');tri(g.hx-2,g.top-1,g.x0-6,g.top-2,g.x0-10,g.top+g.bh+3,'#c62828');R(g.ex-3,g.ey-1,7,3,'#1565c0');R(g.ex,g.ey,1,1,'#ffffff');R(g.hx-3,g.top-2,4,3,'#ffd54f')},
+ party(g){tri(g.hx+1,g.hy-1,g.hx+g.hw-1,g.hy-1,g.cx,g.hy-12,'#40c4ff');R(g.cx-3,g.hy-5,6,1,'#ffeb3b');circ(g.cx,g.hy-12,2,'#ff4081');ctx.strokeStyle='#ffffff';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(g.hx-2,g.top);ctx.lineTo(g.x0-2,g.top-18);ctx.stroke();ell(g.x0-2,g.top-22,4,5,'#ff4081');R(g.x0-4,g.top-25,1,2,'#ffffff')},
+ ski(g){R(g.hx-1,g.hy-4,g.hw+1,5,'#00897b');circ(g.cx,g.hy-6,2.5,'#ffeb3b');R(g.hx+1,g.ey-1,g.hw,4,'#212121');R(g.ex-3,g.ey,7,2,'#ff9800');R(g.ex-2,g.ey,2,1,'#ffe0b2')},
+ tophat(g){R(g.hx-2,g.hy-2,g.hw+3,2,'#212121');R(g.hx,g.hy-10,g.hw-1,8,'#212121');R(g.hx,g.hy-4,g.hw-1,1,'#c62828');R(g.hx-4,g.top-1,3,4,'#212121');R(g.hx,g.top-1,3,4,'#212121');R(g.hx-1,g.top,2,2,'#424242')}};
+{const _dd=drawDogSpr;drawDogSpr=function(d,p){_dd(d,p);if(COST&&!p.belly&&COSTUMES[COST])COSTUMES[COST](costGeo(d,p))}}
+{const _rn=render;render=function(){const lv=LEVELS[G.level],on=lv&&['play','cs','story','clear','dying','pause','gameover'].includes(G.state),c=on?COSTUME_OF[lv.theme]||null:null;if(c!==COST){COST=c;SPR.clear()}_rn()}}
+// tell about the costumes on the story screen
+{const _ds=drawStory;drawStory=function(){_ds();const c=COSTUME_OF[LEVELS[G.level].theme];if(c&&COSTUME_NAME[c])txt('Сегодня на собаках: '+COSTUME_NAME[c],16,H-12,5,'#ffb3e0','left','')}}
+// cutscene text is slower now (CS_SPD) — stretch every shot so each line stays on screen long enough
+function stretchShots(){for(const k in CUT)for(const sh of CUT[k])if(sh.l&&sh.l.length&&!sh.stretched){const m=Math.max(...sh.l.map(l=>l[1].length));sh.d=Math.max(sh.d,Math.round(sh.l.length*(m/CS_SPD+75)));sh.stretched=1}}
+
+// ================= v2.9: 6 new levels — rooftops, ice rink, luna park, mountains, mine, theater =================
+Object.assign(SONGS,{
+ roofs:{bpm:150,mel:seq('E5 - G5 E5 B5 - A5 G5 E5 - D5 E5 G5 - - - E5 - G5 E5 C6 - B5 A5 G5 - E5 D5 E5 - - -'),bass:seq('E2 E3 E2 E3 G2 G3 G2 G3 A2 A3 A2 A3 B2 B3 B2 B3 E2 E3 E2 E3 C3 C4 C3 C4 D3 D4 D3 D4 E2 - - -')},
+ rink:{bpm:120,mel:seq('C5 - E5 G5 C6 - B5 A5 G5 - E5 - F5 - D5 - D5 - F5 A5 D6 - C6 B5 A5 - G5 - C5 - - -'),bass:seq('C3 - G3 - C3 - G3 - A2 - E3 - F2 - G2 - D3 - A3 - D3 - A3 - G2 - D3 - C3 - - -')},
+ luna:{bpm:160,mel:seq('G4 C5 E5 G5 E5 C5 G4 C5 A4 D5 F5 A5 F5 D5 A4 D5 B4 D5 G5 B5 G5 D5 B4 D5 C5 E5 G5 C6 - - - -'),bass:seq('C3 - G2 - C3 - G2 - D3 - A2 - D3 - A2 - G2 - D3 - G2 - D3 - C3 - G2 - C3 - - -')},
+ mount:{bpm:128,mel:seq('A4 - E5 - D5 C5 B4 - C5 - A4 - E4 - - - F4 - C5 - B4 A4 G4 - A4 - E5 - A5 - - -'),bass:seq('A2 - - - E2 - - - A2 - - - C3 - - - F2 - - - G2 - - - A2 - E2 - A2 - - -')},
+ mine:{bpm:112,mel:seq('D5 - F5 - A4 - D5 - C5 - E5 - G4 - C5 - A#4 - D5 - F4 - A#4 - A4 - C#5 - D5 - - -'),bass:seq('D2 - D3 - D2 - D3 - C2 - C3 - C2 - C3 - A#1 - A#2 - A#1 - A#2 - A1 - A2 - D2 - - -')},
+ theater:{bpm:96,mel:seq('C5 - - E5 G5 - - C6 B5 - A5 - G5 - - - F5 - - A5 C6 - - F6 E6 - D6 - C6 - - -'),bass:seq('C3 - E3 - G3 - E3 - C3 - E3 - G3 - E3 - F2 - A2 - C3 - A2 - G2 - B2 - C3 - - -')}});
+// rooftops: helper for buildings of different height with gaps you must jump over
+function roofB(a,x,w,h){a.g(x,x+w);if(h)a.p('roofb',x,GY-h,w,h)}
+const ROOFS={name:'ПО КРЫШАМ',short:'Крыши',theme:'roofs',song:'roofs',arena:3300,boss:'pigeonking',
+ story:'Ночь. Собаки надели плащи супергероев и вылезли на крыши! Отсюда весь город как на ладони.\n\nПрыгай с крыши на крышу, только не свались в проём! Голуби пикируют, коты шипят, трубочисты кидаются сажей.\n\nКоролём крыш себя считает Голубь-Гигант «Гуль-Гуль». Перепрыгивай его ветер, а когда он устанет, бей!',
+ build(a){roofB(a,0,330,0);a.d('roofdoor',20);a.row('treat',160,GY-22,5);roofB(a,390,200,20);a.e('pigeon',460,GY-20);a.p('chimney',540,GY-44,16,24);roofB(a,650,160,40);a.row('treat',660,GY-62,5);a.e('cat',720,GY-40);
+  roofB(a,870,140,20);a.cp(880);a.e('sweep',960,GY-20);roofB(a,1070,120,0);a.e('gull',1120,GY-90);roofB(a,1250,180,30);a.p('skylight',1300,GY-60,50);a.row('treat',1305,GY-78,4);a.e('cat',1380,GY-30);
+  roofB(a,1490,160,0);a.cp(1500);a.e('pigeon',1580);roofB(a,1710,130,30);a.e('sweep',1760,GY-30);a.p('chimney',1810,GY-54,16,24);roofB(a,1900,150,50);a.i('cone',1960,GY-72);a.e('cat',2000,GY-50);
+  roofB(a,2110,200,20);a.cp(2130);a.e('gull',2220,GY-100);a.e('pigeon',2260,GY-20);roofB(a,2370,140,40);a.row('treat',2380,GY-62,5);roofB(a,2570,160,10);a.e('sweep',2640,GY-10);roofB(a,2790,120,30);a.i('bone',2830,GY-52);
+  roofB(a,2970,810,0);a.e('cat',3050);a.e('pigeon',3150);a.e('svetak',2990,GY,{range:30})}};
+const RINK={name:'ЛЕДОВЫЙ КАТОК',short:'Каток',theme:'rink',song:'rink',snow:true,arena:3300,boss:'zamboni',
+ story:'Зима! Во дворе залили каток, и собаки вышли кататься в вязаных шапках и шарфиках.\n\nФигуристы носятся кругами, хоккеисты лупят шайбами (перепрыгивай!), снеговики стоят у бортика.\n\nВ конце катка выехал Ледовый Комбайн «Гладь». Он заливает всё льдом! Пусть врежется в бортик, тогда бей!',
+ build(a){a.g(0,3780);a.d('rinkgate',10);a.row('treat',180,GY-22,5);a.e('skater',320);a.p('board',420,GY-16,60,16);a.row('treat',425,GY-34,4);a.e('hockey',560);a.e('snowman',680);a.p('bench',760,GY-14,60);a.cp(860);
+  a.e('skater',960);a.e('hockey',1080);a.p('board',1160,GY-16,60,16);a.p('board',1220,GY-30,60,30);a.row('treat',1225,GY-48,4);a.e('skater',1360);a.e('runner',1460);a.i('cone',1520,GY-22);a.cp(1620);
+  a.e('hockey',1720);a.e('skater',1820);a.e('snowman',1920);a.p('bench',2000,GY-14,60);a.e('hockey',2120);a.e('skater',2220);a.cp(2320);
+  a.e('skater',2420);a.p('board',2500,GY-16,60,16);a.i('bone',2520,GY-34);a.e('hockey',2640);a.e('sled',2760);a.e('skater',2880);a.e('hockey',3040);a.e('svetak',900,GY,{range:50})}};
+const LUNA={name:'ЛУНА-ПАРК',short:'Аттракционы',theme:'luna',song:'luna',arena:3300,boss:'bumperboss',
+ story:'Выходной! Вся семья пошла в луна-парк, и собакам надели праздничные колпаки, а к ошейникам привязали шарики.\n\nПродавцы сладкой ваты кидаются ватой, машинки-бамперы носятся туда-сюда, батуты подбрасывают высоко.\n\nНа автодроме разбушевалась Машинка «Бампер». Пусть разгонится и врежется в бортик, тогда бей!',
+ build(a){a.g(0,3780);a.d('lunagate',10);a.row('treat',180,GY-22,5);a.e('cotton',320);a.p('tramp',400,GY-10,30,10);a.p('cups',470,GY-70,70);a.row('treat',475,GY-88,5);a.e('bumper',600);a.e('clown',720);a.cp(860);
+  a.e('cotton',940);a.e('bumper',1040);a.p('tramp',1120,GY-10,30,10);a.p('cups',1180,GY-100,70);a.row('treat',1185,GY-118,5);a.e('bumper',1320);a.e('juggler',1420);a.i('cone',1500,GY-22);a.cp(1600);
+  a.e('cotton',1700);a.e('bumper',1800);a.p('cups',1880,GY-60,90);a.e('clown',1990);a.p('tramp',2080,GY-10,30,10);a.p('cups',2140,GY-110,60);a.i('bone',2160,GY-128);a.e('bumper',2240);a.cp(2320);
+  a.e('cotton',2420);a.e('bumper',2520);a.e('juggler',2640);a.p('tramp',2720,GY-10,30,10);a.e('bumper',2840);a.e('cotton',2960);a.e('bumper',3100);a.e('svetak',2360,GY,{range:40})}};
+const MOUNT={name:'СНЕЖНЫЕ ГОРЫ',short:'Горы',theme:'mount',song:'mount',snow:true,arena:3300,boss:'yeti',
+ story:'Собаки поехали на горнолыжный курорт! Шапки, очки, и вперёд по склону.\n\nЛыжники проносятся мимо, сноубордисты прыгают, снеговики кидаются снежками. Между скалами — пропасти!\n\nНа вершине живёт Йети. Он рычит так, что сходит снег, и кидается снежными глыбами. Когда устанет, бей!',
+ build(a){a.g(0,700);a.g(760,1500);a.g(1570,2300);a.g(2360,3780);a.d('skilift',10);a.row('treat',180,GY-22,5);a.e('skier',320);a.p('rock',400,GY-14,40,14);a.e('snowman',520);a.p('snowbank',600,GY-18,50,18);a.row('treat',605,GY-36,4);a.e('boarder',700);a.cp(800);
+  a.e('skier',900);a.p('snowbank',980,GY-18,50,18);a.p('snowbank',1030,GY-36,50,36);a.row('treat',1035,GY-54,4);a.e('boarder',1160);a.e('snowman',1280);a.e('skier',1400);a.i('cone',1440,GY-22);a.cp(1620);
+  a.e('boarder',1720);a.e('skier',1820);a.p('rock',1900,GY-14,40,14);a.e('snowman',2000);a.p('snowbank',2100,GY-24,60,24);a.row('treat',2105,GY-42,5);a.e('skier',2220);a.cp(2400);
+  a.e('boarder',2500);a.e('skier',2600);a.e('snowman',2700);a.p('snowbank',2780,GY-18,50,18);a.i('bone',2790,GY-36);a.e('boarder',2900);a.e('skier',3040);a.e('sled',3140)}};
+const MINE={name:'СТАРАЯ ШАХТА',short:'Шахта',theme:'mine',song:'mine',arena:3300,boss:'molebig',
+ story:'Локи погнался за кротом и провалился в старую шахту! Остальные в касках с фонариками спускаются следом.\n\nВагонетки катятся по рельсам, кроты выпрыгивают из-под земли, летучие мыши пищат в темноте.\n\nВ самой глубине копает Крот-Копатель. От него падают камни! Когда он застрянет в земле, бей!',
+ build(a){a.g(0,3780);a.d('minegate',10);a.row('treat',180,GY-22,5);a.e('minecart',320);a.p('wbeam',420,GY-50,70);a.row('treat',425,GY-68,5);a.e('mole',560);a.e('bat',640,GY-90);a.p('mcrate',720,GY-20,22,20);a.cp(860);
+  a.e('minecart',960);a.e('mole',1080);a.p('wbeam',1150,GY-56,80);a.e('bat',1260,GY-100);a.p('mcrate',1340,GY-20,22,20);a.p('mcrate',1362,GY-20,22,20);a.p('mcrate',1351,GY-40,22,20);a.i('cone',1355,GY-58);a.e('mole',1460);a.cp(1580);
+  a.e('minecart',1680);a.e('bat',1780,GY-90);a.e('mole',1880);a.p('wbeam',1960,GY-60,90);a.row('treat',1970,GY-78,6);a.e('minecart',2100);a.cp(2300);
+  a.e('mole',2400);a.e('bat',2500,GY-100);a.e('minecart',2600);a.p('mcrate',2700,GY-20,22,20);a.i('bone',2702,GY-38);a.e('mole',2820);a.e('minecart',2960);a.e('bat',3080,GY-90)}};
+const THEATER={name:'ТЕАТР ОПЕРЫ',short:'Театр',theme:'theater',song:'theater',arena:3300,boss:'diva',
+ story:'Собак пригласили в театр! Все в цилиндрах и бабочках, как настоящие джентльмены.\n\nБалерины кружатся (не попадись!), актёры кидаются розами, сверху качаются люстры. Прыгай по ложам!\n\nНа сцене поёт Оперная Дива. От её высокой ноты дрожат стёкла! Перепрыгивай звуковые волны, а когда она выдохнется, бей!',
+ build(a){a.g(0,3780);a.d('theatergate',10);a.row('treat',180,GY-22,5);a.e('ballerina',320);a.e('actor',440);a.p('seats',520,GY-18,90,18);a.row('treat',530,GY-36,6);a.p('lodge',660,GY-70,70);a.e('actor',680,GY-70);a.cp(860);
+  a.e('ballerina',960);a.e('ballerina',1020);a.p('seats',1100,GY-18,90,18);a.p('seats',1190,GY-36,90,36);a.row('treat',1200,GY-54,6);a.e('actor',1340);a.p('lodge',1420,GY-80,70);a.i('cone',1440,GY-98);a.e('ballerina',1520);a.cp(1620);
+  a.e('actor',1720);a.e('ballerina',1820);a.p('lodge',1900,GY-70,80);a.row('treat',1910,GY-88,5);a.e('ballerina',2020);a.e('actor',2140);a.cp(2300);
+  a.e('ballerina',2400);a.e('actor',2520);a.p('seats',2600,GY-18,90,18);a.i('bone',2630,GY-36);a.e('ballerina',2760);a.e('actor',2880);a.e('ballerina',3020);a.e('svetak',900,GY,{range:40})}};
+// ---- enemies ----
+Object.assign(LOOKS2,{
+ sweep:{skin:'#e0ac69',hair:'#212121',shirt:'#212121',pants:'#212121',shoes:'#212121',hat:'beanie',hatC:'#212121'},
+ hockey:{skin:'#f1c27d',hair:'#5a3a22',shirt:'#c62828',pants:'#212121',shoes:'#eceff1',hat:'cap',hatC:'#eceff1'},
+ skater:{skin:'#f1c27d',hair:'#d9a441',long:1,shirt:'#ab47bc',pants:'#7b1fa2',shoes:'#ffffff'},
+ cotton:{skin:'#f1c27d',hair:'#5d4037',shirt:'#f48fb1',pants:'#1565c0',shoes:'#212121',hat:'cap',hatC:'#ffffff'},
+ skier:{skin:'#f1c27d',hair:'#5a3a22',shirt:'#ff7043',pants:'#263238',shoes:'#424242',hat:'beanie',hatC:'#ffeb3b'},
+ boarder:{skin:'#e0ac69',hair:'#212121',shirt:'#00bcd4',pants:'#4caf50',shoes:'#424242',hat:'beanie',hatC:'#e91e63'},
+ ballerina:{skin:'#f1c27d',hair:'#5d4037',long:0,shirt:'#f8bbd0',pants:'#f8bbd0',shoes:'#f48fb1'},
+ actor:{skin:'#f1c27d',hair:'#212121',shirt:'#6a1b9a',pants:'#212121',shoes:'#212121'}});
+Object.assign(EDEF,{sweep:[14,32,2],hockey:[14,30,2],skater:[14,30,1],cotton:[14,32,2],bumper:[26,18,2],skier:[18,30,1],boarder:[16,30,1],minecart:[26,18,2],mole:[16,14,1],ballerina:[14,32,1],actor:[14,32,2]});
+Object.assign(SCORE,{sweep:250,hockey:250,skater:200,cotton:200,bumper:250,skier:200,boarder:200,minecart:250,mole:150,ballerina:200,actor:250});
+Object.assign(CRY,{sweep:'Ап-чхи! Сажа!',hockey:'Шайба моя!',skater:'Ой, лёд!',cotton:'Вата слиплась!',bumper:'Бип... бзз',skier:'Лыжи потерял!',boarder:'Вайпаут!',minecart:'Сошла с рельсов!',mole:'Под землю!',ballerina:'Пируэт не удался!',actor:'Занавес!'});
+Object.assign(EXTRA_INIT,{mole(e){e.hid=0}});
+Object.assign(EXTRA_AI,{
+ sweep(e,dx,dy,adx){if(!thrower(e,dx,dy,adx,'soot',3,85,'Чих-чих!'))patrol(e,.4,40)},
+ hockey(e,dx,dy,adx){e.vx=0;if(adx<240&&Math.abs(dy)<40){e.dir=sgn(dx);if(e.throwT>0)e.throwT--;if(--e.cd<=0){e.cd=80;e.throwT=10;jetAt(e,'puck',3.6);pop(e.x-10,e.y-12,'Шайба!','#90caf9')}}else patrol(e,.8,60)},
+ skater(e){patrol(e,2.2,140)},
+ cotton(e,dx,dy,adx){if(!thrower(e,dx,dy,adx,'cotton',3,75,'Сладкая вата!'))patrol(e,.5,40)},
+ bumper(e,dx,dy,adx){patrol(e,1.8,110);if(e.t%60===0&&adx<200)pop(e.x,e.y-10,'Бип-бип!','#ffeb3b')},
+ skier(e){patrol(e,2.6,160);if(e.onGround&&e.hitWall)e.vy=-4},
+ boarder(e,dx,dy,adx){patrol(e,1.8,120);if(e.onGround&&e.t%60===30){e.vy=-4.5;if(adx<200)pop(e.x,e.y-10,'Йоу!','#00bcd4')}},
+ minecart(e){patrol(e,2,140)},
+ mole(e,dx,dy,adx){e.vx=0;e.hid=adx>70&&(e.t%120)<60;if(!e.hid&&e.onGround&&e.t%120===62){e.vy=-4;e.vx=0;if(adx<200)pop(e.x,e.y-10,'Ку-ку!','#bcaaa4')}},
+ ballerina(e,dx,dy,adx){patrol(e,1.6,90);if(e.onGround&&e.t%50===0)e.vy=-3.4},
+ actor(e,dx,dy,adx){if(!thrower(e,dx,dy,adx,'rose',3,80,'Браво!'))patrol(e,.4,40)}});
+Object.assign(EXTRA_SPR,{
+ sweep:e=>hs(e,(s,t)=>{R(-1,-40,2,8,'#212121');R(-4,-41,8,2,'#212121');R(4,-26,2,24,'#5d4037');for(let i=0;i<5;i++)R(1+i,-30-i%2,1,5,'#424242');R(-3,-28,2,2,'#555555')}),
+ hockey:e=>hs(e,(s,t)=>{R(3,-18,2,16,'#8d6e63');R(3,-3,8,2,'#5d4037');R(-6,-23,12,3,'#ffffff')}),
+ skater:e=>hs(e,(s,t)=>{R(-6,-12,12,3,'#f8bbd0');R(-5,-1,6,1,'#cfd8dc');R(1,-1,6,1,'#cfd8dc')}),
+ cotton:e=>hs(e,(s,t)=>{R(4,-26,1,10,'#ffffff');circ(5,-30,5,'#f8bbd0');circ(3,-32,3,'#fce4ec')}),
+ skier:e=>hs(e,(s,t)=>{R(-10,-1,22,1,'#1e88e5');R(-6,-24,1,22,'#9e9e9e');R(6,-24,1,22,'#9e9e9e');R(1,-33,6,2,'#ff9800')}),
+ boarder:e=>hs(e,(s,t)=>{R(-9,-1,20,2,'#ff4081');R(-9,-1,20,1,'#ff80ab');R(1,-33,6,2,'#212121')}),
+ ballerina:e=>hs(e,(s,t)=>{ell(0,-12,9,3,'#fce4ec');ell(0,-13,8,2,'#f8bbd0');R(-1,-38,3,3,'#5d4037')}),
+ actor:e=>hs(e,(s,t)=>{R(-4,-38,8,2,'#212121');R(-3,-44,6,6,'#212121');R(-6,-20,2,10,'#311b92');if(!t){R(4,-22,2,6,'#2e7d32');circ(5,-23,2,'#e53935')}}),
+ bumper:e=>{const f=(e.t>>3)%2,ci=(e.seed*4)|0;return sprite(`bmp|${f}|${ci}`,34,26,17,22,()=>{const c=['#e53935','#1e88e5','#43a047','#fdd835'][ci];R(-13,-12,26,10,c);R(-13,-12,26,2,dk(c,1.3));R(-14,-4,28,4,'#212121');R(-4,-22,2,10,'#9e9e9e');circ(-3,-22,2,'#ffeb3b');if(f)R(-6,-24,6,2,'#ffeb3b');circ(2,-14,4,'#f1c27d');R(2,-16,2,1,'#000000')})},
+ minecart:e=>{const f=(e.t>>2)%2;return sprite(`mc|${f}`,34,24,17,20,()=>{R(-13,-14,26,11,'#6d4c41');R(-13,-14,26,2,'#8d6e63');R(-11,-12,22,2,'#424242');for(let i=0;i<3;i++)circ(-6+i*6,-15,3,['#90a4ae','#ffd54f','#78909c'][i]);circ(-8,-2,3,'#212121');circ(8,-2,3,'#212121');R(-9+f,-3,2,2,'#9e9e9e');R(7-f,-3,2,2,'#9e9e9e')})},
+ mole:e=>{const h=e.hid?1:0;return sprite(`ml|${h}`,24,20,12,16,()=>{ell(0,-1,9,3,'#5d4037');if(h){circ(0,-3,3,'#8d6e63');return}ell(0,-7,7,6,'#424242');circ(5,-8,2.5,'#f48fb1');R(1,-11,1,1,'#ffffff');R(3,-11,1,1,'#ffffff');R(-6,-6,3,2,'#f48fb1');R(4,-5,3,2,'#f48fb1')})}});
+Object.assign(PROJ_DRAW,{
+ soot:(pr,x,y)=>{circ(x+4,y+4,4,'#212121');circ(x+2,y+3,2,'#424242')},
+ puck:(pr,x,y)=>{R(x,y+1,8,4,'#111111');R(x+1,y+1,6,1,'#424242')},
+ cotton:(pr,x,y)=>{circ(x+4,y+4,4,'#f8bbd0');circ(x+2,y+3,2,'#fce4ec')},
+ rose:(pr,x,y)=>blit(sprite('pj|rose',14,12,7,6,()=>{R(-5,0,8,1,'#2e7d32');circ(4,0,3,'#e53935');R(3,-1,2,1,'#ff8a80')}),x+4,y+4,1,{rot:pr.t*.25})});
+// moles hide underground: can't be touched while hidden
+{const _ue=updEnemy;updEnemy=function(e){_ue(e);if(e.type==='mole'&&!e.dying)e.friend=!!e.hid}}
+// ---- platforms & decos ----
+Object.assign(ONEWAY,{skylight:1,cups:1,wbeam:1,lodge:1});
+Object.assign(PLAT_X,{
+ roofb(w,h){R(0,0,w,h,'#4e3a50');R(0,0,w,3,'#8d4a4a');R(0,3,w,1,'#5d2a2a');for(let y=10;y<h;y+=14)for(let x=8;x<w-8;x+=20)R(x,y,8,8,hash(x*7+y)<.4?'#ffe082':'#2a2238')},
+ chimney(w,h){R(0,0,w,h,'#8d4a3a');R(-2,0,w+4,4,'#6d3a2a');for(let y=6;y<h;y+=5)R(0,y,w,1,'#6d3a2a')},
+ skylight(w,h,lh){R(0,0,w,4,'#90caf9');R(0,0,w,1,'#e3f2fd');for(let x=0;x<w;x+=10)R(x,0,1,4,'#546e7a');R(2,4,2,lh-4,'#546e7a');R(w-4,4,2,lh-4,'#546e7a')},
+ board(w,h){R(0,0,w,h,'#ffffff');R(0,0,w,3,'#e53935');R(0,h-3,w,3,'#1e88e5');R(0,4,w,1,'#e0e0e0')},
+ cups(w,h,lh){R(0,0,w,5,'#ff4081');R(0,0,w,1,'#ff80ab');for(let x=4;x<w;x+=16)circ(x+4,-3,5,['#40c4ff','#ffeb3b','#69f0ae'][(x/16|0)%3]);R(w/2-2,5,4,lh-5,'#9e9e9e')},
+ wbeam(w,h,lh){R(0,0,w,5,'#8d6e63');R(0,0,w,1,'#a1887f');R(3,5,4,lh-5,'#6d4c41');R(w-7,5,4,lh-5,'#6d4c41');ctx.strokeStyle='#5d4037';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(5,lh);ctx.lineTo(w-5,5);ctx.stroke();circ(w/2,10,3,'#fff59d')},
+ mcrate(w,h){R(0,0,w,h,'#a1887f');R(0,0,w,2,'#bcaaa4');ctx.strokeStyle='#6d4c41';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(1,1);ctx.lineTo(w-1,h-1);ctx.moveTo(w-1,1);ctx.lineTo(1,h-1);ctx.stroke();R(0,0,w,1,'#6d4c41');R(0,h-1,w,1,'#6d4c41')},
+ lodge(w,h,lh){R(0,0,w,6,'#b71c1c');R(0,0,w,1,'#ffd54f');for(let x=2;x<w;x+=6)R(x,-8,2,8,'#ffd54f');R(0,-9,w,2,'#ffd54f');R(0,6,w,10,'#8e0000');for(let x=4;x<w;x+=12)circ(x+4,11,3,'#ffd54f')}});
+Object.assign(DECO_X,{
+ roofdoor(){R(0,-40,40,40,'#5d4a5a');R(10,-30,20,30,'#3e2a3a');R(26,-16,2,2,'#ffd54f');R(60,-120,3,120,'#9e9e9e');R(48,-110,28,2,'#9e9e9e');R(52,-100,20,2,'#9e9e9e');circ(62,-122,3,'#ff5252')},
+ rinkgate(){R(0,-100,8,100,'#90caf9');R(150,-100,8,100,'#90caf9');R(0,-120,158,24,'#1e88e5');txt('КАТОК',79,-112,8,'#ffffff','center','');for(let i=0;i<10;i++)circ(8+i*16,-96,2,['#ff5252','#ffeb3b','#69f0ae'][i%3])},
+ lunagate(){R(0,-120,10,120,'#ff4081');R(160,-120,10,120,'#ff4081');R(0,-140,170,24,'#7c4dff');txt('ЛУНА-ПАРК',85,-132,8,'#ffeb3b','center','');for(let i=0;i<12;i++)circ(8+i*14,-142,2.5,['#ffeb3b','#ff4081','#40c4ff'][i%3])},
+ skilift(){R(10,-140,6,140,'#9e9e9e');R(10,-140,160,2,'#424242');R(60,-138,1,20,'#424242');R(50,-118,22,4,'#e53935');R(52,-114,2,8,'#424242');R(68,-114,2,8,'#424242');R(130,-138,1,20,'#424242');R(120,-118,22,4,'#1e88e5')},
+ minegate(){R(0,-90,10,90,'#6d4c41');R(110,-90,10,90,'#6d4c41');R(-6,-100,132,12,'#5d4037');R(10,-80,100,80,'#1a120c');circ(60,-104,4,'#fff59d');txt('ШАХТА №7',60,-97,5,'#ffd54f','center','')},
+ theatergate(){R(0,-150,170,150,'#8e0000');for(let i=0;i<5;i++)R(10+i*34,-140,10,140,'#eceff1');R(-6,-160,182,16,'#ffd54f');txt('ОПЕРА',85,-156,8,'#8e0000','center','');R(60,-60,50,60,'#4a0000')}});
+Object.assign(DECOW,{roofdoor:90,rinkgate:170,lunagate:180,skilift:180,minegate:130,theatergate:180});
+// ---- backgrounds ----
+Object.assign(BUILD,{
+ roofs(){const sky=skyCanvas(['#0b0d24','#141a3a','#1e2850','#2a3462','#3a3e6e']);{const p=ctx;ctx=sky.getContext('2d');for(let k=0;k<60;k++)R(hash(k*3)*W|0,hash(k*7)*150|0,1,1,k%4?'#ffffff88':'#ffffff');circ(80,46,16,'#fff8e1');circ(86,42,15,'#141a3a');ctx=p}
+  const far=strip(960,GY,w=>{for(let i=0;i<20;i++){const X=i*48,h=60+hash(i*5)*90|0;R(X,GY-h,44,h,'#1c2140');for(let r=0;r<h/10;r++)for(let k=0;k<4;k++)if(hash(i*41+r*3+k)<.35)R(X+4+k*10,GY-h+4+r*10,4,4,'#ffd27a')}R(400,GY-200,8,120,'#1c2140');R(396,GY-206,16,8,'#1c2140');circ(404,GY-210,2,'#ff5252')});
+  const near=strip(960,GY,w=>{for(let i=0;i<8;i++){const X=i*120+20;R(X,GY-30,90,30,'#2e2440');for(let x=X;x<X+90;x+=10)R(x,GY-34,8,4,'#5a2a2a');R(X+30,GY-60,3,30,'#757575');R(X+20,GY-56,24,2,'#757575');R(X+60,GY-52,12,22,'#6d3a2a')}for(let i=0;i<5;i++){const X=hash(i*9)*w|0;ctx.strokeStyle='#424242';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(X,GY-60);ctx.quadraticCurveTo(X+60,GY-40,X+120,GY-62);ctx.stroke()}});
+  const t=tile(()=>{R(0,0,128,36,'#3a2a3a');for(let y=0;y<36;y+=8)for(let x=(y/8%2)*8;x<128;x+=16){R(x,y,15,7,'#6a3a3a');R(x,y,15,1,'#8a4a4a')}});
+  return{sky,layers:[{c:far,f:.2,y:0},{c:near,f:.5,y:0}],fg:[],pit:'#05060f',tile:t}},
+ rink(){const sky=skyCanvas(['#b3e5fc','#c9ecfb','#ddf2fb','#eef8fc','#ffffff']);
+  const far=strip(960,GY,w=>{for(let i=0;i<8;i++)panelka(i*125,i,true)});
+  const near=strip(960,GY,w=>{R(0,GY-26,w,26,'#ffffff');R(0,GY-26,w,3,'#e53935');R(0,GY-6,w,2,'#1e88e5');for(let x=40;x<w;x+=160){R(x,GY-90,3,64,'#9e9e9e');ctx.strokeStyle='#ffeb3b';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,GY-88);ctx.quadraticCurveTo(x+80,GY-70,x+160,GY-88);ctx.stroke();for(let k=0;k<8;k++)circ(x+10+k*20,GY-84+Math.sin(k/8*Math.PI)*12,2,['#ff5252','#40c4ff','#69f0ae','#ffeb3b'][k%4])}});
+  const t=tile(()=>{R(0,0,128,36,'#d6f0fb');R(0,0,128,2,'#ffffff');for(let k=0;k<10;k++){const x=hash(k*7)*120|0,y=4+hash(k*3)*28|0;R(x,y,8+hash(k)*12|0,1,'#ffffff')}dith(0,0,128,36,'#bfe6f6',.25)});
+  return{sky,layers:[{c:far,f:.15,y:0},{c:near,f:.6,y:0}],fg:[],pit:'#7fb3cc',tile:t}},
+ luna(){const sky=skyCanvas(['#1a237e','#4527a0','#7b1fa2','#c2185b','#ff7043']);
+  const far=strip(960,GY,w=>{ctx.strokeStyle='#ffd54f';ctx.lineWidth=2;ctx.beginPath();ctx.arc(200,GY-110,90,0,7);ctx.stroke();for(let i=0;i<12;i++){const a=i/12*6.283;ctx.beginPath();ctx.moveTo(200,GY-110);ctx.lineTo(200+Math.cos(a)*90,GY-110+Math.sin(a)*90);ctx.stroke();R(196+Math.cos(a)*90,GY-110+Math.sin(a)*90,8,8,['#ff5252','#40c4ff','#69f0ae','#ffeb3b'][i%4])}R(196,GY-110,8,110,'#ffd54f');
+   ctx.strokeStyle='#e0e0e0';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(420,GY);for(let x=420;x<900;x+=10)ctx.lineTo(x,GY-60-Math.abs(Math.sin((x-420)/70))*90);ctx.stroke()});
+  const near=strip(960,GY,w=>{for(let i=0;i<4;i++){const X=i*240+30;R(X,GY-60,120,60,'#ff4081');ctx.fillStyle='#ffeb3b';ctx.beginPath();ctx.moveTo(X-10,GY-60);ctx.lineTo(X+60,GY-100);ctx.lineTo(X+130,GY-60);ctx.fill();for(let k=0;k<5;k++){R(X+10+k*22,GY-50,4,40,'#ffd54f');ell(X+12+k*22,GY-24,8,5,['#ffffff','#90caf9','#ffcc80'][k%3])}for(let k=0;k<12;k++)circ(X+k*11,GY-62,2,['#fff59d','#ff80ab'][k%2])}});
+  const t=tile(()=>{R(0,0,128,36,'#455a64');for(let x=0;x<128;x+=16)for(let y=0;y<36;y+=12)R(x+((y/12)%2)*8,y,8,6,'#546e7a');R(0,0,128,3,'#ff4081')});
+  return{sky,layers:[{c:far,f:.15,y:0},{c:near,f:.55,y:0}],fg:[],pit:'#1a1a2e',tile:t}},
+ mount(){const sky=skyCanvas(['#5c9ce0','#7db2ea','#a2c8f0','#c8def5','#eef4fb']);
+  const far=strip(960,GY,w=>{for(let i=0;i<6;i++){const X=i*170,h=150+hash(i)*40;ctx.fillStyle='#8d9fbf';ctx.beginPath();ctx.moveTo(X-40,GY);ctx.lineTo(X+70,GY-h);ctx.lineTo(X+180,GY);ctx.fill();ctx.fillStyle='#ffffff';ctx.beginPath();ctx.moveTo(X+70,GY-h);ctx.lineTo(X+45,GY-h+40);ctx.lineTo(X+60,GY-h+32);ctx.lineTo(X+75,GY-h+44);ctx.lineTo(X+96,GY-h+38);ctx.fill()}});
+  const near=strip(960,GY,w=>{for(let i=0;i<12;i++){const X=i*80+20;for(let k=0;k<4;k++){ctx.fillStyle='#1b5e20';ctx.beginPath();ctx.moveTo(X+10-(16-k*3),GY-14-k*12);ctx.lineTo(X+10,GY-34-k*12);ctx.lineTo(X+10+(16-k*3),GY-14-k*12);ctx.fill();R(X+10-(14-k*3),GY-16-k*12,(14-k*3)*2,2,'#ffffff')}R(X+8,GY-14,4,14,'#5d4037')}});
+  const t=tile(()=>{R(0,0,128,36,'#eef4ff');dith(0,4,128,32,'#d6e2f2',.35);R(0,0,128,3,'#ffffff')});
+  return{sky,layers:[{c:far,f:.15,y:0},{c:near,f:.5,y:0}],fg:[],pit:'#2a3a5a',tile:t}},
+ mine(){const sky=strip(W,GY,()=>{R(0,0,W,GY,'#1a120c');dith(0,0,W,GY,'#24180f',.3);for(let k=0;k<30;k++)R(hash(k*3)*W|0,hash(k*5)*GY|0,3,2,['#4fc3f7','#ab47bc','#ffd54f'][k%3])});
+  const near=strip(960,GY,w=>{for(let x=0;x<w;x+=120){R(x,GY-150,10,150,'#6d4c41');R(x+100,GY-150,10,150,'#6d4c41');R(x-4,GY-156,118,10,'#5d4037');circ(x+55,GY-140,5,'#fff59d');circ(x+55,GY-140,14,'#fff59d22')}R(0,GY-6,w,2,'#9e9e9e');for(let x=0;x<w;x+=10)R(x,GY-4,6,4,'#5d4037')});
+  const t=tile(()=>{R(0,0,128,36,'#3e2c20');dith(0,0,128,36,'#4e3828',.35);for(let k=0;k<6;k++)R(hash(k*5)*124|0,6+hash(k*9)*26|0,3,2,['#ffd54f','#90a4ae'][k%2]);R(0,0,128,2,'#5d4630')});
+  return{sky,layers:[{c:near,f:.5,y:0}],fg:[],pit:'#0a0604',tile:t}},
+ theater(){const sky=strip(W,GY,()=>{R(0,0,W,GY,'#3e0a0a');for(let x=0;x<W;x+=16){R(x,0,8,GY,'#6a0e0e');R(x+8,0,8,GY,'#550a0a')}R(0,0,W,18,'#ffd54f');for(let x=0;x<W;x+=20)ell(x+10,18,10,6,'#8e0000')});
+  const near=strip(960,GY,w=>{for(let x=0;x<w;x+=160){R(x,GY-110,140,30,'#8e0000');R(x,GY-110,140,3,'#ffd54f');for(let k=0;k<6;k++)circ(x+12+k*23,GY-95,6,'#3e0a0a');circ(x+70,GY-160,16,'#ffecb3');for(let k=0;k<8;k++)R(x+56+k*4,GY-150,2,10,'#fff59d')}for(let x=0;x<w;x+=12){circ(x+6,GY-12,6,'#2a0606');R(x+1,GY-8,10,8,'#2a0606')}});
+  const t=tile(()=>{R(0,0,128,36,'#5d1010');for(let x=0;x<128;x+=8)R(x,0,4,36,'#6a1414');R(0,0,128,3,'#ffd54f')});
+  return{sky,layers:[{c:near,f:.55,y:0}],fg:[],pit:'#1a0000',tile:t}}});
+
+// ================= v2.9: bosses, cutscenes and wiring for the 6 new levels =================
+Object.assign(GBD,{
+ pigeonking:{w:44,h:40,hp:12,name:'ГОЛУБЬ-ГИГАНТ «ГУЛЬ-ГУЛЬ»',hint:'Перепрыгивай ветер! Бей, когда устанет',sp:1,hop:1,atk:['throw','ring','slam'],proj:'feather',ringSay:'ГУЛЬ-ГУЛЬ-ГУЛЬ!',hello:'Гуль! Я король крыш! Крошки есть?',ouch:'Гуль... кружится голова...',minion:'pigeon'},
+ zamboni:{w:56,h:40,hp:12,name:'ЛЕДОВЫЙ КОМБАЙН «ГЛАДЬ»',hint:'Перепрыгни разгон! Бей, когда врежется в бортик',sp:.7,atk:['throw','charge','charge'],proj:'snowball',hello:'Заливаю лёд! Всем разойтись!',ouch:'Бортик... крепкий...',minion:'skater'},
+ bumperboss:{w:52,h:36,hp:12,name:'МАШИНКА «БАМПЕР»',hint:'Прыгай сверху! Бей, когда врежется в бортик',sp:1.1,atk:['charge','throw','charge'],proj:'cotton',hello:'БИП-БИП! Я тут самая быстрая!',ouch:'Бзз... бампер помялся...',minion:'bumper'},
+ yeti:{w:46,h:44,hp:12,name:'ЙЕТИ',hint:'Перепрыгивай волны! Бей, когда устанет',sp:.9,atk:['throw','ring','slam'],proj:'snowball',ringSay:'Р-Р-РОА-А-АР!',hello:'Р-р-р... Кто топчет мой снег?!',ouch:'Уф... надо полежать в сугробе...',minion:'snowman'},
+ molebig:{w:48,h:40,hp:12,name:'КРОТ-КОПАТЕЛЬ',hint:'Не стой под камнями! Бей, когда застрянет в земле',sp:.8,atk:['rain','slam','throw','slam'],proj:'rockp',hello:'Кто светит фонариком?! Я плохо вижу!',ouch:'Застрял... носом в землю...',minion:'mole'},
+ diva:{w:36,h:44,hp:12,name:'ОПЕРНАЯ ДИВА',hint:'Перепрыгивай высокие ноты! Бей, когда выдохнется',sp:.6,atk:['throw','ring','rain','ring'],ringTired:1,rainSlow:8,proj:'rose',ringSay:'А-А-А-А-А!!!',hello:'Ми-ми-ми-ми-ми! Тишина в зале!',ouch:'Голос... сел...',minion:'ballerina'}});
+Object.assign(GB_DRAW,{
+ pigeonking(st,a,f){ell(0,-16,18,13,'#90a4ae');ell(-2,-12,12,7,'#b0bec5');ell(10,-30,8,8,'#78909c');R(4,-26,12,6,'#7e57c2');R(4,-24,12,2,'#26a69a');R(16,-31,7,3,'#ffcc80');R(12,-33,3,3,st?'#212121':'#ff7043');for(let i=0;i<3;i++)R(4+i*4,-42,3,5,'#ffd54f');R(4,-38,11,2,'#ffd54f');
+  if(a){R(-24,-30,14,8,'#78909c');R(-24,-30,14,2,'#546e7a')}else R(-16,-20,12,6,'#78909c');R(-6,-4,2,4,'#ff8a65');R(4,-4,2,4,'#ff8a65');R(-20,-14,6,3,'#607d8b')},
+ zamboni(st,a,f){R(-26,-24,52,18,'#1e88e5');R(-26,-24,52,2,'#64b5f6');R(-20,-38,22,14,'#90caf9');R(-18,-36,18,10,'#e3f2fd');circ(-10,-30,4,'#f1c27d');R(-12,-35,8,2,'#e53935');R(10,-30,14,6,'#eceff1');circ(-16,-4,6,'#212121');circ(16,-4,6,'#212121');circ(-16,-4,2,'#9e9e9e');circ(16,-4,2,'#9e9e9e');
+  R(24,-12,6,8,'#90a4ae');if(st){R(18,-22,3,2,'#212121');R(22,-22,3,2,'#212121')}else{R(18,-22,4,4,'#ffffff');R(19,-21,2,2,'#212121')}if(a&&f)for(let i=0;i<3;i++)R(-30-i*4,-2,3,2,'#e3f2fd')},
+ bumperboss(st,a,f){R(-24,-20,48,14,'#e53935');R(-24,-20,48,3,'#ff8a80');R(-26,-8,52,6,'#212121');R(-2,-40,2,20,'#9e9e9e');circ(-1,-41,3,'#ffeb3b');if(a&&f)R(-6,-44,10,3,'#ffeb3b');circ(8,-24,6,'#f1c27d');R(4,-30,10,3,'#5d4037');R(9,-26,2,1,'#212121');
+  if(st){R(14,-16,4,1,'#212121');R(20,-16,4,1,'#212121')}else{R(14,-17,4,4,'#ffffff');R(20,-17,4,4,'#ffffff');R(15,-16,2,2,'#212121');R(21,-16,2,2,'#212121')}R(14,-11,10,2,'#880e4f')},
+ yeti(st,a,f){ell(0,-20,20,18,'#eceff1');for(let i=0;i<8;i++)circ(-16+i*4.5,-36+(i%2)*3,4,'#ffffff');ell(8,-30,8,7,'#90caf9');R(4,-33,3,3,st?'#212121':'#ffffff');R(10,-33,3,3,st?'#212121':'#ffffff');if(!st){R(5,-32,1,1,'#212121');R(11,-32,1,1,'#212121')}
+  if(a){R(3,-27,10,4,'#1a237e');R(4,-27,2,2,'#ffffff');R(10,-27,2,2,'#ffffff');R(-26,-40,8,20,'#eceff1');R(18,-40,8,20,'#eceff1')}else{R(4,-26,8,2,'#1a237e');R(-26,-26,8,22,'#eceff1');R(18,-26,8,20,'#eceff1')}R(-12,-4,10,4,'#cfd8dc');R(4,-4,10,4,'#cfd8dc')},
+ molebig(st,a,f){const sk=st?8:0;ell(0,-16+sk,22,16,'#4e342e');ell(-2,-12+sk,14,8,'#6d4c41');R(-6,-36+sk,20,6,'#fdd835');ell(4,-36+sk,10,4,'#fdd835');circ(14,-35+sk,2,'#fff59d');circ(18,-20+sk,5,'#f48fb1');R(10,-28+sk,2,1,'#ffffff');R(14,-28+sk,2,1,'#ffffff');
+  for(const x of [-24,16])for(let i=0;i<3;i++)R(x+i*3,-8+sk-(a?8:0),2,6,'#f8bbd0');if(st)R(-26,-4,52,4,'#3e2c20');else{R(-12,-4,8,4,'#4e342e');R(4,-4,8,4,'#4e342e')}},
+ diva(st,a,f){ctx.fillStyle='#8e24aa';ctx.beginPath();ctx.moveTo(-18,0);ctx.lineTo(18,0);ctx.lineTo(8,-26);ctx.lineTo(-8,-26);ctx.fill();R(-8,-34,16,10,'#8e24aa');for(let i=0;i<5;i++)circ(-14+i*7,-2,2,'#ffd54f');R(-3,-46,10,12,'#f1c27d');circ(2,-50,7,'#ff8f00');circ(0,-56,5,'#ff8f00');R(-2,-48,2,1,'#212121');
+  if(st){R(4,-42,3,2,'#c62828');R(-1,-44,8,1,'#212121')}else{R(1,-45,2,2,'#212121');R(5,-45,2,2,'#212121');R(2,-40,4,a?4:2,'#c62828')}R(8,-36,2,10,'#f1c27d');if(a){R(9,-44,2,10,'#f1c27d');circ(10,-45,2,'#424242')}for(let i=0;i<4;i++)circ(-6+i*4,-35,1.5,'#ffffff')}});
+for(const k of ['pigeonking','zamboni','bumperboss','yeti','molebig','diva']){const D=GBD[k];BOSSDEF[k]={w:D.w,h:D.h,hp:D.hp,name:D.name,hint:D.hint};BOSS_VULN[k]=(b,src)=>src==='stomp'||b.state==='tired';BOSS_HARM[k]=b=>b.state==='tired'||b.state==='intro';BOSS_UPD[k]=gbUpd;
+ const sw=D.w+44,sh=D.h+40;BOSS_DRAW[k]=function(b,white){const st=b.state==='tired'?1:0,a=['throw','ring','rain','charge','slam'].includes(b.state)?1:0,f=Math.abs(b.vx)>.2||a?(frame>>2)%2:0;
+  const s=sprite(`gb|${k}|${st}|${a}|${f}`,sw,sh,sw/2,sh-4,()=>GB_DRAW[k](st,a,f));blit(s,b.x+b.w/2,b.y+b.h,b.dir,{white});if(st)stars(b.x+b.w/2,b.y-8,14)}}
+Object.assign(PROJ_DRAW,{feather:(pr,x,y)=>blit(sprite('pj|feather',14,8,7,4,()=>{R(-6,-1,12,2,'#b0bec5');R(-6,0,12,1,'#78909c');R(5,-2,2,4,'#eceff1')}),x+4,y+4,1,{rot:pr.t*.15}),
+ rockp:(pr,x,y)=>{circ(x+4,y+4,4,'#795548');R(x+2,y+2,2,1,'#a1887f')}});
+// ---- cutscenes for the new levels ----
+const NEWCUT={
+ roofs:[{bg:'roofs',d:330,a:[...D4(110)],l:[['ТОСЯ','Гав-Патруль, плащи надеть!'],['ЛОКИ','Я лечу! ...нет, я прыгаю! ...нет, я падаю!'],['ЛЕКСИ','Можно я буду героем, который лежит?']],ins:[{k:'loki',from:.35,to:.7,cap:'СУПЕР-ЛОКИ',word:'ВЖУХ!',col:['#e53935','#ffcdd2']}]},
+  CL('pigeonking',[['ГОЛУБЬ-ГИГАНТ','Гуль-гуль! Это МОИ крыши! Крошки сдать!']],['#283593','#5c6bc0'])],
+ rink:[{bg:'rink',d:330,a:[A('svetak',380,380,{dir:-1,st:'sushki'}),...D4(110)],l:[['ЛЕКСИ','Лёд! Можно я по нему поеду лёжа?'],['СТЁПА','Я как сосиска на сковородке!'],['СВЕТА С БОНЕЙ','Фигуристы! Сушку после каждого круга!']],ins:[{k:'stepa',from:.3,to:.66,cap:'СТЁПА',word:'УИИИ!'}]},
+  CL('loki',[['ЛОКИ','Я катаюсь! ...Я не умею тормозить!!!']],['#b3e5fc','#ffffff'],{word:'БАМ!'})],
+ luna:[{bg:'luna',d:330,a:[A('samcouple',380,380,{dir:-1}),...D4(110)],l:[['НАСТЯ','Андрей, карусель! Ха-ха-ха!'],['АНДРЕЙ','Настя, у Фины шарик! Ха-ха!'],['ЛОКИ','А почему мой шарик улетает вместе со мной?!']],ins:[{k:'fina',from:.5,cap:'ФИНА С ШАРИКОМ',word:'ПУФ!'}]},
+  {bg:'luna',d:260,a:[RUN(),SASH()],l:[['САША','Рэй! Грант! Это не американские горки!'],['САША','...уже горки.']]}],
+ mount:[{bg:'mount',d:330,a:[A('phonelady',380,380,{dir:-1}),A('buba',425,425,{dir:-1}),...D4(110)],l:[['СВЕТА С БУБОЙ','Алло? Я на горе! В триколоре меня найдёт любой спасатель!'],['ТОСЯ','А нам выдали лыжные очки!'],['ЛОКИ','Я ничего не вижу! А, я их задом наперёд надел.']]},
+  CL('yeti',[['ЙЕТИ','Р-р-р... А сушки у вас есть?']],['#90caf9','#e3f2fd'],{word:'Р-Р-Р!'})],
+ mine:[{bg:'mine',d:330,a:[...D4(110)],l:[['ТОСЯ','Локи! Ты где?!'],['ЛОКИ','(эхо) Я тут... тут... ту-у-ут...'],['СТЁПА','Таксы созданы для нор! Я первый!']],ins:[{k:'stepa',from:.66,cap:'СТЁПА В НОРЕ',word:'ГАВ!'}]},
+  CL('molebig',[['КРОТ-КОПАТЕЛЬ','Кто светит фонариком мне в глаза?!']],['#5d4037','#8d6e63'])],
+ theater:[{bg:'theater',d:330,a:[A('samcouple',380,380,{dir:-1}),...D4(110)],l:[['АНДРЕЙ','Настя, опера! Тихо! Ха-ха!'],['НАСТЯ','Ты сам смеёшься! Ха-ха-ха!'],['ЛЕКСИ','В цилиндре удобно спать...']],ins:[{k:'lexi',from:.66,st:'lie',cap:'ЛЕКСИ',word:'Zzz'}]},
+  CL('diva',[['ОПЕРНАЯ ДИВА','Ми-ми-ми-ми-МИ-И-И-И!!!']],['#8e0000','#ffd54f'],{word:'ДЗЫНЬ!'})]};
+Object.assign(CUT,NEWCUT);
+// ---- add the levels into the shuffled run ----
+for(const [lv,msg,at] of [[ROOFS,'Голубь-король улетел, крыши свободны!',3],[RINK,'Комбайн заглох, каток гладкий!',9],[LUNA,'Машинка в гараже, аттракционы работают!',15],[MOUNT,'Йети подружился и катает на спине!',21],[MINE,'Крот закопался, а Локи нашёлся!',27],[THEATER,'Дива поклонилась, публика аплодирует!',33]]){LEVELS.splice(at,0,lv);CLEARMSG.splice(at,0,msg)}
+for(const th of ['rink','mount','luna']){const lv=LEVELS.find(l=>l.theme===th),ob=lv.build;lv.build=function(a){ob(a);placeNear(lv,1,x=>{a.e('rayrun',x,GY,{range:240});a.e('sasha',x-90,GY)})}}
+ROWS=Math.ceil(LEVELS.length/COLS);
+try{save=clamp(+localStorage.getItem('tosya_lvl')||0,0,LEVELS.length-1)}catch(e){}
+stretchShots();
+// bosses can have close-ups too
+{const _ba=bigActor;bigActor=function(k,st,t,cx,fy,sc,talk){if(GB_DRAW[k]){const d=BOSSDEF[k],sw=d.w+44,sh=d.h+40,a=(t>>4)%2;ctx=MAIN;blit(sprite(`gb|${k}|0|${a}|${(t>>3)%2}`,sw,sh,sw/2,sh-4,()=>GB_DRAW[k](0,a,(t>>3)%2)),cx,fy-(talk?((t>>3)%2)*2:0),1,{sc:sc*.9});return}_ba(k,st,t,cx,fy,sc,talk)}}
 
 // ================= RENDER =================
 function drawWeather(){if(!L)return;
