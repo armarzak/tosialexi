@@ -2650,7 +2650,7 @@ const SVK_LINES={
 Object.assign(EDEF,{svetak:[40,32,9]});SCORE.svetak=0;CRY.svetak='';
 EXTRA_INIT.svetak=e=>{e.friend=true;e.dir=1;e.sti=(e.seed*4)|0;e.st=SVK_ST[e.sti]};
 EXTRA_AI.svetak=(e,dx,dy,adx)=>{
- if(e.t%320===0){e.sti=(e.sti+1)%4;e.st=SVK_ST[e.sti]}
+ if(e.t%320===0){e.sti=(e.sti+1)%SVK_ST.length;e.st=SVK_ST[e.sti]}
  if(e.st==='pester'&&adx<220&&Math.abs(dy)<40&&!(e.hugCD>0)){e.dir=sgn(dx);e.vx=e.dir*1.1;const fx=e.dir>0?e.x+e.w+2:e.x-2;if(e.onGround&&!solidAt(fx,e.y+e.h+3))e.vx=0}
  else patrol(e,e.st==='smoke'?.25:.5,(e.opt&&e.opt.range)||90);
  if(e.hugCD>0)e.hugCD--;
@@ -3110,7 +3110,7 @@ LEVELS.find(l=>l.theme==='park').story=LEVELS.find(l=>l.theme==='park').story.re
  LEVELS.length=0;CLEARMSG.length=0;for(const [l,m] of [first,...mid,last]){LEVELS.push(l);CLEARMSG.push(m)}}
 try{save=clamp(+localStorage.getItem('tosya_lvl')||0,0,LEVELS.length-1)}catch(e){}
 // ---- menus with 3 columns (36 levels) ----
-const COLS=3,ROWS=Math.ceil(LEVELS.length/COLS);
+const COLS=3;let ROWS=Math.ceil(LEVELS.length/COLS);
 function levelGrid(sel,lockFrom,x0,y0){LEVELS.forEach((l,i)=>{const col=i/ROWS|0,row=i%ROWS,x=x0+col*152,y=y0+row*17,on=sel===i,lock=i>lockFrom;if(on)drawBoneIcon(x-15,y,'#ffe066');
  const nm=l.name.length>14?l.name.slice(0,13)+'.':l.name,c=on?'#ffe066':lock?'#777777':'#ffffff';txt((i+1)+'.',x,y,8,c);txt(nm,x+(i<9?18:26),y,8,c)})}
 function gridNav(n){menuNav(n);if(G.mrow<LEVELS.length){if(M.right()&&G.mrow+ROWS<LEVELS.length){G.mrow+=ROWS;S.menu()}else if(M.left()&&G.mrow>=ROWS){G.mrow-=ROWS;S.menu()}}}
@@ -3135,6 +3135,205 @@ drawGallery=function(){bgScroll('forest',.5);panel(4,4,472,262);txt('ЗАСТА�
  for(const g of gs){if(g.x>px)gaps.push([px,g.x]);px=Math.max(px,g.x+g.w)}gaps.push([px,1e6]);
  for(const [a,b] of gaps){const x0=Math.max(a,cam-2),x1=Math.min(b,cam+W+2);if(x1<=x0)continue;c.fillStyle=L.theme==='aqua'?'#29b6f6':'#2a8ad0';c.fillRect(x0,GY+3,x1-x0,H-GY-3);c.fillStyle=L.theme==='aqua'?'#0288d1':'#1d6aa8';c.fillRect(x0,GY+16,x1-x0,H-GY-16);
   c.fillStyle='#bfe9ff';for(let x=Math.ceil(x0);x<x1-5;x+=9)c.fillRect(x,GY+4+Math.round(Math.sin((x+frame*1.5)*.05)*2),5,1)}}}
+
+// ================= v2.7: Snail Garden — every dog wears a snail costume (shell + antennae) =================
+let SNAIL=false;
+const SHELLC=[['#ec407a','#f8bbd0','#ad1457'],['#ab47bc','#e1bee7','#6a1b9a'],['#ffa726','#ffe0b2','#e65100'],['#26a69a','#b2dfdb','#00695c']];
+function snailCostume(d,p){const lie=p.act==='lie',lg=lie?1:d.leg,bl=d.bl,bh=d.bh,x0=-(bl>>1),x1=x0+bl,top=-(lg+bh);
+ const id=d.id||d.c||'',ci=[...id].reduce((s,ch)=>s+ch.charCodeAt(0),0)%4,[c,l,s]=SHELLC[ci],r=Math.max(7,Math.round(bh*.8+3)),cx=Math.round(x0+bl*.42),cy=top-r+5;
+ circ(cx,cy,r+1,s);circ(cx,cy,r,c);ctx.strokeStyle=l;ctx.lineWidth=2;ctx.beginPath();for(let a=0;a<13;a+=.25){const rr=(r-2)*(1-a/14);ctx.lineTo(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr)}ctx.stroke();
+ R(cx-(r>>1),cy-r+2,2,2,'#ffffff');R(x0+1,top+bh-2,bl-2,2,'#a5d6a7');
+ const hx=x1-4,hy=top-d.hh+3+(lie?2:0);R(hx+3,hy-7,1,7,'#6d4c41');R(hx+7,hy-6,1,6,'#6d4c41');circ(hx+3,hy-8,1.7,c);circ(hx+7,hy-7,1.7,c);R(hx+3,hy-9,1,1,'#ffffff')}
+{const _dd=drawDogSpr;drawDogSpr=function(d,p){_dd(d,p);if(SNAIL&&!p.belly)snailCostume(d,p)}}
+// costumes are on only around the snail level: cached sprites are rebuilt when that changes
+{const _rn=render;render=function(){const lv=LEVELS[G.level],m=!!lv&&lv.theme==='snail'&&['play','cs','story','clear','dying','pause','gameover'].includes(G.state);if(m!==SNAIL){SNAIL=m;SPR.clear()}_rn()}}
+// hiding in the shell: lying down in a snail costume protects from everything
+{const _hp=hurtPlayer;hurtPlayer=function(src){if(SNAIL&&P&&P.lie&&G.state==='play'){if(!(P.shellT>0)){P.shellT=60;pop(P.x-20,P.y-16,'Я в домике!','#f8bbd0')}return}_hp(src)};
+ const _um=updMovers;updMovers=function(){_um();if(P&&P.shellT>0)P.shellT--;if(L.theme==='snail'&&G.t%3===0)parts.push({x:cam+rnd(0,W+60),y:-4,vx:-.6,vy:3.2,g:0,life:80,c:'#b3e5fc99',s:1})}}
+
+SONGS.snail={bpm:116,mel:seq('C5 E5 G5 E5 F5 - D5 - E5 G5 C6 G5 A5 - - - G5 E5 C5 E5 F5 A5 G5 F5 E5 - D5 - C5 - - -'),bass:seq('C3 - G2 - F2 - G2 - C3 - E3 - F3 - - - C3 - G2 - F2 - G2 - C3 - G2 - C3 - - -')};
+// ---- friendly snails, slugs, beetles, dragonflies ----
+Object.assign(EDEF,{snailf:[18,14,9],slug:[18,8,1],beetle:[16,10,2],dfly:[18,10,1]});
+Object.assign(SCORE,{snailf:0,slug:100,beetle:150,dfly:150});
+Object.assign(CRY,{snailf:'',slug:'Хлюп...',beetle:'Жжж... улетаю!',dfly:'Вжж!'});
+const SNAILHI=['Привет, собака-улитка!','Ты тоже улитка? Класс!','Не спеши, улитки не спешат!','У тебя красивый домик!','Пойдём есть листики!'];
+Object.assign(EXTRA_INIT,{snailf(e){e.friend=true;e.dir=e.seed<.5?1:-1},dfly(e){e.fly=true}});
+Object.assign(EXTRA_AI,{
+ snailf(e,dx,dy,adx){patrol(e,.15,30);if(adx<200&&e.t%160===40)say(e,SNAILHI[(e.t/160|0)%SNAILHI.length],'#6a1b9a');giftOnce(e,'Улитка делится листиком! +1')},
+ slug(e){patrol(e,.35,60);if(e.t%12===0)parts.push({x:e.x+e.w/2-e.dir*8,y:e.y+e.h-1,vx:0,vy:0,g:0,life:120,c:'#c5e1a588',s:3})},
+ beetle(e){patrol(e,1.6,90)},
+ dfly(e,dx,dy,adx){swoop(e,dx,dy,adx,'Вжжж!','#80deea')}});
+Object.assign(EXTRA_SPR,{
+ snailf:e=>{const f=(e.t>>4)%2,ci=(e.seed*4)|0;return sprite(`snf|${f}|${ci}`,30,26,15,22,()=>{const [c,l,s]=SHELLC[ci];ell(1,-2,10,3,'#c5e1a5');R(6,-10,4,9,'#c5e1a5');R(7,-16+f,1,6,'#9ccc65');R(10,-15,1,5,'#9ccc65');circ(7,-17+f,1.5,'#33691e');circ(10,-16,1.5,'#33691e');R(9,-8,2,1,'#558b2f');
+   circ(-2,-9,8,s);circ(-2,-9,7,c);ctx.strokeStyle=l;ctx.lineWidth=2;ctx.beginPath();for(let a=0;a<12;a+=.3){const rr=6*(1-a/13);ctx.lineTo(-2+Math.cos(a)*rr,-9+Math.sin(a)*rr)}ctx.stroke()})},
+ slug:e=>{const f=(e.t>>3)%2;return sprite(`slg|${f}`,26,14,13,10,()=>{ell(0,-3,10-f,3,'#8d6e63');ell(0,-4,8-f,2,'#a1887f');R(7,-9,1,5,'#8d6e63');R(9,-8,1,4,'#8d6e63');R(7,-10,1,1,'#212121');R(9,-9,1,1,'#212121')})},
+ beetle:e=>{const f=(e.t>>2)%2;return sprite(`btl|${f}`,22,14,11,11,()=>{ell(0,-5,7,5,'#283593');ell(0,-6,6,4,'#3949ab');R(0,-11,1,10,'#1a237e');R(-3,-8,2,1,'#9fa8da');circ(7,-5,3,'#212121');R(9,-9,3,1,'#212121');for(const x of [-4,0,4])R(x,-1+((x/4+f)&1),1,2,'#212121')})},
+ dfly:e=>{const f=(e.t>>1)%2;return sprite(`dfl|${f}`,28,18,14,12,()=>{R(-12,-6,16,2,'#00acc1');circ(6,-6,3,'#00838f');R(7,-8,1,1,'#ffffff');ctx.fillStyle='#b2ebf2aa';if(f){ell(-2,-11,7,3,'#b2ebf2aa');ell(-2,-1,7,3,'#b2ebf2aa')}else{ell(-4,-10,7,2,'#b2ebf2aa');ell(-4,-2,7,2,'#b2ebf2aa')}})}});
+// ---- garden platforms and decorations ----
+Object.assign(ONEWAY,{mushroom:1,leafp:1});
+Object.assign(PLAT_X,{
+ mushroom(w,h,lh){R(w/2-5,4,10,lh-4,'#fff8e1');R(w/2-5,4,3,lh-4,'#efe5c8');ctx.fillStyle='#e53935';ctx.beginPath();ctx.ellipse(w/2,4,w/2+2,10,0,Math.PI,0);ctx.fill();R(-2,3,w+4,3,'#c62828');for(const [x,y] of [[.2,-1],[.5,-5],[.75,0],[.35,2]])circ(w*x,y,2.5,'#ffffff')},
+ leafp(w,h,lh){ctx.fillStyle='#43a047';ctx.beginPath();ctx.ellipse(w/2,2,w/2+4,6,0,0,7);ctx.fill();R(2,1,w-4,1,'#2e7d32');for(let x=6;x<w;x+=10)R(x,-2,1,4,'#2e7d32');R(w/2-1,6,2,lh-6,'#558b2f');circ(w*.7,-2,2,'#b3e5fc')},
+ flowerpot(w,h){R(2,4,w-4,h-4,'#d84315');R(0,0,w,6,'#e64a19');R(0,0,w,1,'#ff8a65');R(4,8,w-8,1,'#bf360c');for(let i=0;i<3;i++){R(4+i*(w-8)/2,-12,1,12,'#43a047');circ(4+i*(w-8)/2,-13,3,['#f06292','#ffeb3b','#ba68c8'][i]);circ(4+i*(w-8)/2,-13,1,'#fff59d')}}});
+Object.assign(DECO_X,{snailgate(){R(0,-90,6,90,'#8d6e63');R(150,-90,6,90,'#8d6e63');ctx.strokeStyle='#8d6e63';ctx.lineWidth=4;ctx.beginPath();ctx.arc(78,-90,75,Math.PI,0);ctx.stroke();for(let i=0;i<12;i++)circ(78+Math.cos(Math.PI+i*.28)*75,-90+Math.sin(Math.PI+i*.28)*75,4,['#f06292','#ffeb3b','#ba68c8','#4fc3f7'][i%4]);
+  R(28,-150,100,20,'#fff8e1');R(28,-150,100,2,'#ffffff');txt('УЛИТОЧНЫЙ САД',78,-145,5,'#6a1b9a','center','')}});
+DECOW.snailgate=170;
+BUILD.snail=function(){const sky=skyCanvas(['#90a4ae','#a7bfcc','#c3d6de','#dcebee','#eef6f2']);
+ {const p=ctx;ctx=sky.getContext('2d');ctx.lineWidth=4;['#ef5350','#ffa726','#ffee58','#66bb6a','#42a5f5','#7e57c2'].forEach((c,i)=>{ctx.strokeStyle=c+'aa';ctx.beginPath();ctx.arc(330,170,110-i*4,Math.PI,0);ctx.stroke()});cloud(40,20,'#ffffff','#ffffff','#cfd8dc');cloud(200,10,'#eceff1','#ffffff','#b0bec5');ctx=p}
+ const far=strip(960,GY,w=>{for(let x=0;x<w;x++){const u=x/w*Math.PI*2;R(x,(GY-60-12*Math.sin(u*3))|0,1,GY,'#7cb342')}for(let i=0;i<8;i++){const X=i*120+30;R(X+14,GY-110,6,60,'#5d4037');circ(X+17,GY-118,26,'#558b2f');circ(X+4,GY-106,16,'#689f38')}});
+ const near=strip(960,GY,w=>{for(let i=0;i<6;i++){const X=i*160+20;R(X+18,GY-70,8,70,'#fff8e1');ctx.fillStyle=['#e53935','#8e24aa','#fb8c00'][i%3];ctx.beginPath();ctx.ellipse(X+22,GY-70,30,16,0,Math.PI,0);ctx.fill();for(let k=0;k<4;k++)circ(X+8+k*9,GY-78+(k%2)*5,3,'#ffffff')}
+  for(let i=0;i<24;i++){const X=hash(i*7)*w|0,h=14+hash(i*3)*26|0;wrapAt(w,X,10,XX=>{R(XX+3,GY-h,1,h,'#558b2f');circ(XX+3,GY-h-2,3,['#f06292','#ffeb3b','#ba68c8','#ffffff','#4fc3f7'][i%5]);circ(XX+3,GY-h-2,1,'#fff59d')})}
+  for(let i=0;i<10;i++){const X=hash(i*13+1)*w|0;ell(X,GY-4,14,6,'#2e7d32');ell(X+10,GY-6,10,7,'#43a047')}});
+ const t=tile(()=>{R(0,0,128,36,'#6d4c41');dith(0,6,128,30,'#5d4037',.35);R(0,0,128,5,'#7cb342');for(let x=0;x<128;x+=3)if(hash(x*5)<.6)R(x,0,1,4,'#9ccc65');ell(40,18,14,3,'#90a4ae');ell(40,17,12,2,'#b3e5fc');ell(100,26,10,2,'#90a4ae');for(let k=0;k<5;k++)R(hash(k*9)*120|0,10+hash(k*4)*22|0,2,2,'#8d6e63')});
+ return{sky,layers:[{c:far,f:.15,y:0},{c:near,f:.5,y:0}],fg:[],pit:'#3e2723',tile:t}};
+// ---- boss: the Greedy Toad, hunts snails ----
+GBD.toad={w:48,h:40,hp:12,name:'ЖАБА-ОБЖОРА',hint:'Перепрыгивай волны! Бей, когда устанет после прыжка',sp:.8,hop:1,atk:['throw','slam','ring','slam'],proj:'mud',ringSay:'КВА-А-А!',hello:'Ква! Где тут вкусные улитки?!',ouch:'Ква... объелась...',minion:'frog'};
+BOSSDEF.toad={w:48,h:40,hp:12,name:GBD.toad.name,hint:GBD.toad.hint};BOSS_VULN.toad=(b,src)=>src==='stomp'||b.state==='tired';BOSS_HARM.toad=b=>b.state==='tired'||b.state==='intro';BOSS_UPD.toad=gbUpd;
+GB_DRAW.toad=(st,a,f)=>{ell(0,-14,24,14,'#689f38');ell(2,-10,18,8,'#c5e1a5');for(const [x,y] of [[-14,-20],[-6,-24],[-18,-12]])circ(x,y,2.5,'#558b2f');circ(10,-28,7,'#689f38');circ(20,-28,7,'#689f38');
+ if(st){R(7,-29,6,2,'#212121');R(17,-29,6,2,'#212121')}else{circ(10,-29,4,'#fff59d');circ(20,-29,4,'#fff59d');R(10,-30,2,3,'#212121');R(20,-30,2,3,'#212121')}
+ if(a){R(8,-17,20,6,'#ad1457');R(26,-15,f?14:6,3,'#f06292')}else R(8,-16,20,2,'#33691e');R(-22,-4,10,4,'#558b2f');R(10,-4,10,4,'#558b2f');R(26,-2,4,2,'#558b2f')};
+{const d=BOSSDEF.toad,sw=d.w+44,sh=d.h+40;BOSS_DRAW.toad=function(b,white){const st=b.state==='tired'?1:0,a=['throw','ring','rain','slam'].includes(b.state)?1:0,f=Math.abs(b.vx)>.2||a?(frame>>2)%2:0;
+ const s=sprite(`gb|toad|${st}|${a}|${f}`,sw,sh,sw/2,sh-4,()=>GB_DRAW.toad(st,a,f));blit(s,b.x+b.w/2,b.y+b.h,b.dir,{white});if(st)stars(b.x+b.w/2,b.y-8,14)}}
+PROJ_DRAW.mud=(pr,x,y)=>{circ(x+4,y+4,4,'#6d4c41');R(x+2,y+2,2,1,'#8d6e63')};
+// ---- the level ----
+const SNAILLV={name:'УЛИТОЧНЫЙ САД',short:'Улитки',theme:'snail',song:'snail',arena:3300,boss:'toad',
+ story:'После дождя в саду праздник улиток! Мама сшила собакам костюмы: у каждой домик на спине и рожки на голове.\n\nУлитки — друзья, они делятся листиками. А слизни, жуки и стрекозы мешают празднику.\n\nСекрет: ляг (вниз), и собака спрячется в домик — так её никто не обидит!\n\nНо к саду прискакала Жаба-Обжора, она хочет съесть улиток. Защити их! Бей, когда она устанет.',
+ build(a){a.g(0,3780);a.d('snailgate',10);a.row('treat',180,GY-22,5);a.e('snailf',260);a.e('slug',360);a.p('mushroom',430,GY-40,40);a.row('treat',435,GY-58,3);a.e('beetle',540);a.e('snailf',620);a.p('leafp',680,GY-60,60);a.e('dfly',760,GY-90);a.cp(860);
+  a.e('slug',940);a.e('snailf',1000);a.p('flowerpot',1060,GY-24,30,24);a.e('frog',1140);a.p('mushroom',1200,GY-50,44);a.p('leafp',1270,GY-90,60);a.row('treat',1275,GY-108,4);a.e('beetle',1360);a.e('snailf',1440);a.i('cone',1500,GY-22);a.e('dfly',1560,GY-100);a.cp(1640);
+  a.e('slug',1720);a.e('snailf',1780);a.p('mushroom',1840,GY-40,40);a.e('beetle',1940);a.p('flowerpot',2020,GY-24,30,24);a.e('frog',2100);a.p('leafp',2160,GY-64,70);a.row('treat',2170,GY-82,5);a.e('snailf',2260);a.cp(2340);
+  a.e('dfly',2420,GY-90);a.e('slug',2500);a.e('snailf',2560);a.p('mushroom',2640,GY-46,44);a.i('bone',2655,GY-64);a.e('beetle',2760);a.e('slug',2880);a.e('snailf',2960);a.e('frog',3060);a.e('beetle',3160);
+  a.e('svetak',900,GY,{range:60});a.e('friend',1700,GY,{f:'lemon',range:150});a.e('samcouple',2400,GY,{range:80})}};
+// second level, right after the dog park
+LEVELS.splice(1,0,SNAILLV);CLEARMSG.splice(1,0,'Жаба ускакала, улитки спасены!');ROWS=Math.ceil(LEVELS.length/COLS);
+try{save=clamp(+localStorage.getItem('tosya_lvl')||0,0,LEVELS.length-1)}catch(e){}
+CUT.snail=[{bg:'snail',d:400,a:[A('mom',400,400,{dir:-1}),...D4(120),A('svetak',-70,36,{st:'mom'})],l:[['МАМА','Сегодня праздник улиток! Надеваем костюмы!'],['ЛОКИ','Я улитка! Я ОЧЕНЬ БЫСТРАЯ улитка!'],['ЛЕКСИ','Улитки много лежат. Мне подходит!'],['СВЕТА С БОНЕЙ','Мам, тут собаки-улитки! Нет, я не курила!']]},
+ {bg:'snail',d:220,a:[...D4(120,false)],l:[['СТЁПА','У меня самый длинный домик!'],['ТОСЯ','Ползём... то есть бежим!']],sfx:'bark'}];
+
+// ================= v2.8: cartoon cutscenes (close-ups + inset panels), Sasha chasing Ray & Grant, two Svetas, sushki, Andrey & Nastya, fluffy Fina =================
+// ---- fluffy Fina ----
+Object.assign(SAMO,{bl:26,bh:12,hh:11});
+function finaFluff(d,p){const lie=p.act==='lie',lg=lie?1:d.leg,bl=d.bl,bh=d.bh,x0=-(bl>>1),x1=x0+bl,top=-(lg+bh),hx=x1-4,hy=top-d.hh+3+(lie?2:0);
+ const puff=(x,y,r)=>{circ(x,y,r+1,'#dfe3ea');circ(x,y,r,'#ffffff')};
+ for(let i=0;i<=bl;i+=5)puff(x0+i,top+1,3.5);for(let i=3;i<bl-4;i+=5)puff(x0+i,top+bh-1,3);
+ puff(x0+1,top-4,5);puff(x0+5,top-9,4);puff(x0-3,top-1,4);puff(x0+9,top-6,3);
+ puff(x1-3,top+3,5);puff(x1-1,top+8,4);puff(hx-1,hy+8,5);puff(hx+3,hy+11,4);
+ if(!lie&&!p.air)for(const lx of [x0+3,x1-5])puff(lx+1,-4,2.5);
+ R(hx+d.hw-4,hy+2,2,2,'#1a1010');R(hx+d.hw-4,hy+2,1,1,'#ffffff')}
+{const _dd=drawDogSpr;drawDogSpr=function(d,p){_dd(d,p);if(d.id==='samo'){finaFluff(d,p);if(SNAIL&&!p.belly)snailCostume(d,p)}}}
+// ---- Andrey & Nastya laugh and chatter all the time ----
+COUPLE.splice(0,COUPLE.length,'НАСТЯ: Ха-ха-ха! Андрей, смотри!','АНДРЕЙ: Ха-ха! Настя, ты видела?!','НАСТЯ: Фина, рядом! Ха-ха-ха!','АНДРЕЙ: А помнишь, как мы... ха-ха-ха!','НАСТЯ: Андрей, не смеши, мне нельзя! Ха-ха!','АНДРЕЙ: Фина опять облако! Ха-ха!','НАСТЯ: Ха-ха-ха-ха!','АНДРЕЙ: Ха-ха-ха-ха-ха!','НАСТЯ: А он такой... ха-ха-ха!','АНДРЕЙ: Настя, ну хватит! Ха-ха-ха!');
+EXTRA_AI.samcouple=(e,dx,dy,adx)=>{patrol(e,.45,(e.opt&&e.opt.range)||100);if(adx<300&&e.t%90===30)say(e,COUPLE[(e.t/90|0)%COUPLE.length],'#00897b');
+ if(!e.hi&&adx<220){e.hi=1;pop(e.x,e.y-26,'АНДРЕЙ, НАСТЯ И ФИНА','#ffe066')}giftOnce(e,'Фина делится косточкой! Ха-ха!')};
+// ---- Sveta with Buba in the tricolor hat ----
+SVETA.splice(0,SVETA.length,'Алло? Я в шапке-триколоре, меня видно из космоса!','Буба, не ешь шапку! Это флаг!','Мам, я не потерялась, ищи триколор!','Связь пропадает... подниму шапку выше!','Алло? Это Света. Нет, ДРУГАЯ Света!','Девочки, за шапкой! Шапка — наш флаг!','Буба, сушки нам нельзя! ...Уже съел?','Алло! Я в шапке! Да, в ТОЙ САМОЙ!');
+// ---- Sveta with Bonya: feeds everyone sushki and runs the whole yard ----
+SVK_ST.push('sushki');
+SVK_LINES.sushki=['Сушечку? Бери-бери!','Всем по сушке! Это приказ!','Мальчик, возьми сушку! И маме!','Я тут всем управляю, если что','Так, построились за сушками!','Без сушки не уходим!','Видите? Все меня слушаются!','Сушка — это валюта двора!'];
+SVK_LINES.pester.push('А вы почему без сушки?!');
+{const _sv=svetaSprite;svetaSprite=function(st,s,f,talk){if(st!=='sushki')return _sv(st,s,f,talk);return sprite(`svk2|${s}|${f}|${talk?1:0}`,96,58,46,52,()=>{
+ ctx.save();ctx.translate(-12,0);human(SVETAK,{s,thr:1});const hy=-33;R(-1,-23,1,13,'#5a5d63');R(-6,hy+3,3,9,SVETAK.hair);circ(-6,hy+11,2,SVETAK.hair);if(talk)R(2,hy+6,3,2,'#5a1a1a');
+ ctx.strokeStyle='#8d6e63';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(3,-31);ctx.lineTo(10,-24);ctx.lineTo(10,-10);ctx.stroke();for(let i=0;i<5;i++){ctx.strokeStyle=i%2?'#c8873f':'#d9a35a';ctx.lineWidth=2;ctx.beginPath();ctx.arc(10+(i%2)*2-1,-22+i*3,2.5,0,7);ctx.stroke()}
+ ctx.strokeStyle='#e53935';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-3,-13);ctx.quadraticCurveTo(14,-4,35,-16);ctx.stroke();ctx.restore();
+ ctx.save();ctx.translate(18,0);drawDogSpr(BONYA,{f,air:0,act:'',wag:(f+1)%4,tongue:true});ctx.restore()})}}
+{const ai=EXTRA_AI.svetak;EXTRA_AI.svetak=(e,dx,dy,adx)=>{ai(e,dx,dy,adx);
+ if(e.st==='sushki'&&G.state==='play'){if(adx<220&&e.t%70===35)items.push({type:'sushka',x:e.x+e.w/2+e.dir*14,y:e.y,w:10,h:10,t:0,vy:-3,drop:1});
+  if(e.feedCD>0)e.feedCD--;else for(const o of ents)if(!(e.feedCD>0)&&o!==e&&!o.friend&&!o.dying&&!o.invul&&!o.minion&&Math.abs(o.x-e.x)<120&&Math.abs(o.y-e.y)<50){o.friend=true;o.calm=1;o.vx=0;o.angry=false;say(o,'Ням! Спасибо за сушку!','#8d6e63');say(e,'Видите? Все меня слушаются!','#c62828');e.feedCD=60}}}}
+EXTRA_INIT.svetak=e=>{e.friend=true;e.dir=1;e.sti=(e.seed*SVK_ST.length)|0;e.st=SVK_ST[e.sti]};
+{const _ue=updEnemy;updEnemy=function(e){if(e.calm&&!e.dying){e.t++;if(e.inv>0)e.inv--;if(!e.fly){e.vy=Math.min(e.vy+.25,6);moveBody(e)}if(e.t%150===0&&Math.abs(e.x-P.x)<240)pops.push({x:e.x,y:e.y-14,s:'хрум-хрум',c:'#d9a35a',t:0});return}_ue(e)}}
+{const _is=itemSprite;itemSprite=function(type,fr){if(type!=='sushka')return _is(type,fr);return sprite('it|sushka|'+fr,16,16,3,3,()=>{ctx.strokeStyle='#b5762e';ctx.lineWidth=3;ctx.beginPath();ctx.arc(5,5,4,0,7);ctx.stroke();ctx.strokeStyle='#e8b070';ctx.lineWidth=1;ctx.beginPath();ctx.arc(5,5,4,3.6,5.4);ctx.stroke();if(fr)R(3,1,1,1,'#fff3d0')})}}
+{const _ui=updItems;updItems=function(){for(const it of items)if(it.type==='sushka'&&!it.gone&&ov(it,P)){it.gone=true;G.score+=50;G.treats++;S.coin();pop(P.x-20,P.y-16,'Сушка от Светы!','#d9a35a')}_ui()}}
+// ---- Sasha and the runaway ridgebacks Ray & Grant ----
+const SASHA_CALLS=['Рэй! Грант! КО МНЕ!','Рэ-э-э-эй!','Грант, стоять! Стоять, говорю!','Фух... я уже не молод...','Ребята, вернитесь, я сушку дам!','Кто видел двух рыжих собак?!','Рэй! Это не наша площадка!','Грант, отдай чужой мячик!'];
+Object.assign(EDEF,{rayrun:[48,20,9],sasha:[16,38,9]});Object.assign(SCORE,{rayrun:0,sasha:0});CRY.rayrun='';CRY.sasha='';
+Object.assign(EXTRA_INIT,{rayrun(e){e.friend=true;e.dir=1},sasha(e){e.friend=true;e.dir=1}});
+Object.assign(EXTRA_AI,{
+ rayrun(e,dx,dy,adx){patrol(e,2.8,(e.opt&&e.opt.range)||260);if(e.onGround&&e.hitWall)e.vy=-5;if(adx<240&&e.t%110===20)pops.push({x:e.x+10,y:e.y-14,s:['Гав! Свобода!','Догони, Саша!','Гав-гав-гав!'][(e.t/110|0)%3],c:'#ffcc80',t:0});giftOnce(e,'Рэй и Грант лизнули! +1')},
+ sasha(e,dx,dy,adx){const b=ents.find(o=>o.type==='rayrun'&&Math.abs(o.x-e.x)<600);if(b){e.dir=sgn(b.x-e.x);e.vx=e.dir*1.6;const fx=e.dir>0?e.x+e.w+2:e.x-2;if(e.onGround&&!solidAt(fx,e.y+e.h+3))e.vx=0;if(e.hitWall&&e.onGround)e.vy=-5}else patrol(e,.8,100);
+  if(adx<300&&e.t%100===30)say(e,SASHA_CALLS[(e.t/100|0)%SASHA_CALLS.length],'#1565c0');if(!e.hi&&adx<240){e.hi=1;pop(e.x-6,e.y-28,'САША','#ffe066')}}});
+EXTRA_SPR.rayrun=e=>{const f=(e.t>>2)%4;return sprite(`rr|${f}`,90,40,45,34,()=>{ctx.strokeStyle='#2e7d32';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-26,-14);ctx.lineTo(-44,-1);ctx.moveTo(4,-14);ctx.lineTo(-14,-1);ctx.stroke();
+ ctx.save();ctx.translate(-14,-(f%2)*2);drawDogSpr(RIDGE,{f,air:0,act:'',wag:f,tongue:true});ctx.restore();ctx.save();ctx.translate(16,-((f+1)%2)*2);drawDogSpr(RIDGE2,{f:(f+2)%4,air:0,act:'',wag:(f+1)%4,tongue:true,mouth:f===0});ctx.restore()})};
+EXTRA_SPR.sasha=e=>{const s=stepOf(e,3);return sprite(`sasha|${s}`,40,62,20,56,()=>{ctx.save();ctx.scale(1,1.18);human(GRAYMAN,{s,thr:1});ctx.restore();R(1,-40,3,4,'#e8c09a');
+ ctx.strokeStyle='#2e7d32';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(2,-38);ctx.quadraticCurveTo(-10,-30,-14,-20);ctx.moveTo(2,-38);ctx.quadraticCurveTo(-6,-26,-8,-16);ctx.stroke();R(-15,-21,3,3,'#2e7d32');R(-9,-17,3,3,'#c62828');R(6,-36,2,2,'#4fc3f7')})};
+// put the chase into many levels
+function placeNear(lv,want,make){const cs=cps.slice().sort((p,q)=>p.x-q.x),got=[];for(const c of [cs[1],cs[3],cs[0],cs[2]])if(c)for(const x of [c.x+120,c.x+220,c.x-160]){if(got.length>=want)return;if(x<200||x>lv.arena-200)continue;
+ if([0,30,60,-100].every(o=>solidAt(x+o,GY+2))&&!plats.some(p=>!p.ow&&p.x<x+70&&p.x+p.w>x-110&&p.y<GY)&&!ents.some(e=>e.friend&&Math.abs(e.x-x)<120)){got.push(x);make(x)}}}
+for(const th of ['city','park','beach','winter','plaza','zoo','west','airport','market','forest','jungle','egypt','build','snail','school','show','village']){const lv=LEVELS.find(l=>l.theme===th);if(!lv)continue;const ob=lv.build;
+ lv.build=function(a){ob(a);placeNear(lv,1,x=>{a.e('rayrun',x,GY,{range:240});a.e('sasha',x-90,GY)})}}
+// grayman is Sasha too
+{const ai=EXTRA_AI.grayman;EXTRA_AI.grayman=(e,dx,dy,adx)=>{ai(e,dx,dy,adx);if(!e.hi2&&adx<240){e.hi2=1;pop(e.x+10,e.y-26,'САША, РЭЙ И ГРАНТ','#ffe066')}}}
+for(const k in CUT)for(const sh of CUT[k])for(const ln of sh.l){if(ln[0]==='ХОЗЯИН РЭЯ')ln[0]='САША';if(ln[0]==='СВЕТА')ln[0]='СВЕТА С БУБОЙ'}
+
+// ---- cartoon cutscene shots: close-ups and inset panels ----
+const DOGX={buba:BUBA,bonya:BONYA,fina:SAMO,ray:RIDGE,grant:RIDGE2,smogych:HUSKY};
+const CLOSESC={svetak:3.6,grayman:3.1,samcouple:3.3,sasha:4,phonelady:4.6,smog:3.4,rayrun:3.4};
+const SPK2={'ТОСЯ':'tosya','ЛЕКСИ':'lexi','ЛОКИ':'loki','СТЁПА':'stepa','САША':'sasha','СВЕТА С БОНЕЙ':'svetak','СВЕТА С БУБОЙ':'phonelady','НАСТЯ':'samcouple','АНДРЕЙ':'samcouple','ФИНА':'fina','БУБА':'buba','РЭЙ':'ray','ГРАНТ':'grant'};
+function speedBG(x,y,w,h,c1,c2,t){R(x,y,w,h,c1);ctx.save();ctx.beginPath();ctx.rect(x,y,w,h);ctx.clip();const cx=x+w/2,cy=y+h*.55;ctx.fillStyle=c2;for(let i=0;i<20;i++){const a=i/20*6.283+t*.004;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(a)*500,cy+Math.sin(a)*500);ctx.lineTo(cx+Math.cos(a+.13)*500,cy+Math.sin(a+.13)*500);ctx.fill()}ctx.restore()}
+function bigActor(k,st,t,cx,fy,sc,talk){ctx=MAIN;const d=DOGS[k]||DOGX[k];
+ if(d){blit(dogSprite(d,{f:0,air:0,act:st==='lie'?'lie':'',wag:(t>>2)%4,mouth:talk&&(t>>3)%2,tongue:k==='loki'&&!talk,blink:(st==='lie'&&!talk)||(t%140)<6,dr:(t>>4)%3}),cx,fy,1,{sc})}
+ else{const s=csSprite({k,st,dir:1},t,false);if(s)blit(s,cx,fy-(talk?((t>>3)%2)*2:0),1,{sc})}}
+function csSpeaker(sh,t){if(!sh.l.length)return null;const per=sh.d/sh.l.length,li=Math.min(sh.l.length-1,t/per|0);return sh.l[li][0]}
+function csText(sh,t){if(sh.l.length){const per=sh.d/sh.l.length,li=Math.min(sh.l.length-1,t/per|0),[who,str]=sh.l[li],n=Math.min(str.length,(t-li*per)*.9|0);panel(10,8,460,46);const off=who?(who.length+2)*8:0;if(who)txt(who+':',20,16,8,'#ffe066');
+  wrap(str.slice(0,n),440-off,8).forEach((l,k)=>txt(l,20+off,16+k*12,8,'#ffffff'))}
+ txt((G.level+1)+'. '+LEVELS[G.level].name,W-8,H-24,5,'#ffffffcc','right','');txt('ENTER - пропустить',W-8,H-12,5,'#ffffffaa','right','')}
+function csClose(sh,t){const c=sh.close,col=sh.col||['#ffd54f','#ffe9a0'],isDog=!!(DOGS[c.k]||DOGX[c.k]);ctx=MAIN;MAIN.setTransform(1,0,0,1,0,0);speedBG(0,0,W,H,col[0],col[1],t);
+ const zoom=Math.min(1,.8+t*.02),sc=(c.sc||(isDog?6:CLOSESC[c.k]||4.4))*zoom,talk=SPK2[csSpeaker(sh,t)]===c.k;
+ bigActor(c.k,c.st,t,W/2+(c.dx||0),isDog?H-22:H+(c.dy||0),sc,talk);
+ if(c.word){const s=Math.min(1,t/10);ctx.save();ctx.translate(W-90,H-80);ctx.rotate(-.2);ctx.scale(s,s);txt(c.word,0,0,16,'#ff1744','center','#000');ctx.restore()}
+ R(0,0,W,3,'#000');R(0,H-3,W,3,'#000');R(0,0,3,H,'#000');R(W-3,0,3,H,'#000');csText(sh,t)}
+function csInsets(sh,t){ctx=MAIN;MAIN.setTransform(1,0,0,1,0,0);const spk=SPK2[csSpeaker(sh,t)];
+ for(const n of sh.ins||[]){const f0=(n.from||0)*sh.d,f1=(n.to||1)*sh.d;if(t<f0||t>f1)continue;const tt=t-f0,sl=Math.min(1,tt/10),w=150,h=104,y=62,x=n.left?8-(1-sl)*170:W-w-8+(1-sl)*170,isDog=!!(DOGS[n.k]||DOGX[n.k]),col=n.col||['#4fc3f7','#b3e5fc'];
+  R(x-3,y-3,w+6,h+6,'#000000');R(x-1,y-1,w+2,h+2,'#ffffff');ctx.save();ctx.beginPath();ctx.rect(x,y,w,h);ctx.clip();speedBG(x,y,w,h,col[0],col[1],tt);
+  bigActor(n.k,n.st,tt,x+w/2-(isDog?8:0),isDog?y+h-10:y+h+22,isDog?2.4:(CLOSESC[n.k]?CLOSESC[n.k]*.62:2.7),spk===n.k);ctx.restore();
+  if(n.cap){R(x,y,w,11,'#000000aa');txt(n.cap,x+4,y+3,5,'#ffe066','left','')}if(n.word){ctx.save();ctx.translate(x+w-30,y+h-24);ctx.rotate(-.15);txt(n.word,0,0,8,'#ff1744','center','#000');ctx.restore()}}}
+{const _cr=csRender;csRender=function(){const[si,t,sh]=csShot();if(!sh)return;if(sh.close){csClose(sh,t);return}_cr();if(sh.ins)csInsets(sh,t)}}
+// ---- lots of new shots ----
+const RUN=()=>A('rayrun',-80,580),SASH=()=>A('sasha',-260,540,{slow:1});
+const CL=(k,lines,col,o={})=>({close:{k,...o},a:[],d:o.d||Math.max(130,lines.length*125),l:lines,col});
+const MORE={
+ park:[{bg:'park',d:340,a:[RUN(),SASH(),...D4(150,false)],l:[['САША','Рэй! Грант! КО МНЕ!!!'],['ЛОКИ','Они без поводков! Так можно было?!'],['САША','Фух... я уже не молод... РЭ-Э-ЭЙ!']],ins:[{k:'sasha',from:.62,cap:'КРУПНЫЙ ПЛАН: САША',word:'ФУХ!',col:['#90caf9','#e3f2fd']}]},
+  {bg:'park',d:460,a:[A('svetak',110,110,{st:'sushki'}),A('phonelady',300,300,{dir:-1}),A('buba',345,345,{dir:-1}),A('tosya',210,210)],l:[['СВЕТА С БОНЕЙ','Света!'],['СВЕТА С БУБОЙ','Что?'],['СВЕТА С БОНЕЙ','Да я не тебе, я маме! Мам, тут Света!'],['СВЕТА С БУБОЙ','Алло, мам Светы? Я тоже Света! В шапке!']],ins:[{k:'tosya',from:.72,cap:'ТЕМ ВРЕМЕНЕМ ТОСЯ',word:'?!',left:1}]},
+  CL('samcouple',[['НАСТЯ','Андрей, смотри, четыре собаки! Ха-ха-ха!'],['АНДРЕЙ','Ха-ха! А у нас одна, но ПУШИСТАЯ! Ха-ха!']],['#80deea','#b2ebf2']),
+  CL('fina',[['ФИНА','Я облачко. Гав.']],['#e1f5fe','#ffffff'],{word:'ПУФ!'})],
+ snail:[CL('svetak',[['СВЕТА С БОНЕЙ','Улитки, сушечку? Всем сушки! Я тут главная!'],['ЛЕКСИ','Улитки не едят сушки...'],['СВЕТА С БОНЕЙ','Теперь едят.']],['#f8bbd0','#fce4ec'],{st:'sushki'})],
+ airport:[{bg:'airport',d:380,a:[A('svetak',150,150,{st:'sushki'}),A('traveler',330,330,{dir:-1}),...D4(60,false)],l:[['СВЕТА С БОНЕЙ','Мужчина, возьмите сушку в полёт!'],['ПАССАЖИР','Спасибо... а вы кто?'],['СВЕТА С БОНЕЙ','Я тут всем управляю. Самолёт подождёт.']],ins:[{k:'loki',from:.4,to:.7,cap:'ЛОКИ',word:'ХОЧУ!'}]}],
+ river:[{bg:'river',d:360,sfx:'splash',a:[RUN(),SASH()],l:[['САША','Рэй! Грант! Только не в речку!'],['','*ПЛЮХ!*'],['САША','...в речку.']],ins:[{k:'grant',from:.4,cap:'ГРАНТ ДОВОЛЕН',word:'БУЛЬК!',col:['#4fc3f7','#b3e5fc']}]}],
+ market:[{bg:'market',d:380,a:[A('phonelady',180,180),A('buba',225,225),A('svetak',360,360,{dir:-1,st:'sushki'})],l:[['СВЕТА С БУБОЙ','Алло? Я у полки с сушками! А их нет!'],['СВЕТА С БОНЕЙ','Конечно нет. Я их все купила. Раздаю!'],['СВЕТА С БУБОЙ','Буба, не бери сушку! ...Взял.']],ins:[{k:'buba',from:.7,cap:'БУБА',word:'ХРУМ!'}]}],
+ dream:[{bg:'dream',d:260,a:[A('lexi',200,200,{act:'lie'}),A('svetak',360,360,{dir:-1,st:'sushki'})],l:[['СВЕТА С БОНЕЙ','Лекси... Лекси-и... Сушечку?'],['ЛЕКСИ','Даже во сне... она здесь...']]},CL('lexi',[['ЛЕКСИ','Zzz... сушки... Zzz...']],['#ce93d8','#e1bee7'],{st:'lie'})],
+ candy:[{bg:'candy',d:380,a:[A('svetak',300,300,{dir:-1,st:'sushki'}),A('baker',410,410,{dir:-1}),...D4(60,false)],l:[['КОНДИТЕР','Фабрика делает торты и конфеты!'],['СВЕТА С БОНЕЙ','А сушки? Нет? Тогда я ваш новый директор.'],['КОНДИТЕР','...Есть, директор!']],ins:[{k:'tosya',from:.72,cap:'ТОСЯ',word:'ЧТО?!',left:1}]}],
+ wash:[CL('loki',[['ЛОКИ','Я НЕ ГРЯЗНЫЙ! Это мой естественный цвет!']],['#81d4fa','#b3e5fc'],{word:'НЕТ!'})],
+ spooky:[{bg:'spooky',d:380,a:[A('phonelady',240,240),A('buba',285,285),A('ghost',380,380,{y:40,dir:-1})],l:[['ПРИЗРАК','У-у-у-у!'],['СВЕТА С БУБОЙ','Алло? Тут призрак. Не страшно, у меня шапка-триколор!'],['ПРИЗРАК','...извините, я пойду.']],ins:[{k:'ghost',from:.66,cap:'ПРИЗРАК',word:'ОЙ...'}]}],
+ egypt:[{bg:'egypt',d:380,a:[RUN(),SASH(),...D4(60,false)],l:[['САША','Рэй! Грант! Это пирамида, а не туалет!'],['ТОСЯ','Они добежали до Египта?!'],['САША','Они всегда убегают ДАЛЕКО.']],ins:[{k:'ray',from:.3,to:.66,cap:'РЭЙ',word:'СВОБОДА!'}]}],
+ forest:[{bg:'forest',d:380,a:[A('svetak',300,300,{dir:-1,st:'sushki'}),A('dad',60),...D4(120,false)],l:[['СВЕТА С БОНЕЙ','Мам, я в лесу. Белок тоже кормлю сушками.'],['ПАПА','А вы... откуда тут?'],['СВЕТА С БОНЕЙ','Я везде. Сушку?']],ins:[{k:'dad',from:.6,cap:'ПАПА',word:'?!',left:1}]}],
+ winter:[{bg:'winter',d:380,a:[A('phonelady',300,300,{dir:-1}),A('buba',345,345,{dir:-1}),...D4(60,false)],l:[['СВЕТА С БУБОЙ','Шапка-триколор греет лучше шубы!'],['ЛОКИ','А мне можно такую шапку?'],['СВЕТА С БУБОЙ','Нет. Она одна такая. Как флаг!']]},CL('phonelady',[['СВЕТА С БУБОЙ','Алло?! АЛЛО?! Это я, Света! В ШАПКЕ!']],['#e53935','#ffffff'],{word:'АЛЛО!'})],
+ west:[{bg:'west',d:380,a:[RUN(),SASH(),A('cowboy',420,420,{dir:-1})],l:[['КОВБОЙ','Что это пронеслось?'],['САША','Рэй и Грант! Не видели?!'],['КОВБОЙ','Дикий Запад видел всё... но не ТАКОЕ.']]}],
+ groom:[{bg:'groom',d:380,a:[A('samcouple',300,300,{dir:-1}),...D4(60,false)],l:[['НАСТЯ','Андрей, Фину будут сушить феном! Ха-ха!'],['АНДРЕЙ','Она станет в два раза больше! Ха-ха-ха!'],['ЛЕКСИ','Куда ещё больше-то...']]},CL('fina',[['ФИНА','ПУФ! Теперь я туча.']],['#ffffff','#e1f5fe'],{word:'ПУФ!'})],
+ ocean:[{bg:'ocean',bubbles:1,d:260,a:[A('svetak',220,220,{st:'sushki',y:40})],l:[['СВЕТА С БОНЕЙ','Буль... Подводные сушки! Кто хочет?'],['ЛОКИ','Как она сюда попала?!']],ins:[{k:'loki',from:.5,cap:'ЛОКИ',word:'КАК?!'}]}],
+ zoo:[{bg:'zoo',d:380,a:[A('svetak',190,190,{st:'sushki'}),A('monkey',330,330,{dir:-1,jump:1}),...D4(30,false)],l:[['СВЕТА С БОНЕЙ','Обезьяна, держи сушку! И тебе, жираф!'],['ТОСЯ','Зверей кормить нельзя!'],['СВЕТА С БОНЕЙ','Мне можно. Я договорилась с директором.']],ins:[{k:'monkey',from:.3,to:.66,cap:'ОБЕЗЬЯНА',word:'ХРУМ!'}]}],
+ library:[CL('svetak',[['СВЕТА С БОНЕЙ','(шёпотом) Битрикс... опять... завис... #@$%'],['БИБЛИОТЕКАРША','ТС-С-С!!!']],['#2fc6f6','#b3e5fc'],{st:'bitrix'})],
+ space:[{bg:'space',d:260,a:[A('phonelady',300,300,{dir:-1})],l:[['СВЕТА С БУБОЙ','Алло, Земля? Вы меня видите? Я в шапке!'],['ЛОКИ','Её правда видно из космоса...']],ins:[{k:'phonelady',from:.45,cap:'ВИД С ОРБИТЫ',word:'ВИДНО!',col:['#1a237e','#3949ab']}]}],
+ jungle:[{bg:'jungle',d:380,a:[RUN(),SASH(),A('monkey',400,400,{dir:-1})],l:[['ОБЕЗЬЯНА','У-у-а? Кто это пронёсся?'],['САША','Рэй! Грант! Вы не Тарзаны!'],['САША','Фух... тут даже обезьяны быстрее меня.']],ins:[{k:'ray',from:.35,to:.7,cap:'РЭЙ',word:'УИИИ!'}]}],
+ rock:[{bg:'rock',d:380,a:[A('samcouple',300,300,{dir:-1}),A('svetak',120,120,{st:'sushki'})],l:[['НАСТЯ','Андрей, это наша песня! Ха-ха-ха!'],['АНДРЕЙ','Настя, это просто барабаны! Ха-ха!'],['СВЕТА С БОНЕЙ','Так, всем тихо! Раздаю сушки по рядам!']]}],
+ city:[{bg:'city',d:380,a:[A('svetak',190,190,{st:'sushki'}),A('kid',330,330,{dir:-1}),A('mom',380,380,{dir:-1})],l:[['СВЕТА С БОНЕЙ','Мальчик! Возьми сушку. И маме. И учительнице!'],['РЕБЁНОК','Спасибо, тётя Света!'],['СВЕТА С БОНЕЙ','Видите? Весь двор у меня вот где.']],ins:[{k:'svetak',st:'sushki',from:.7,cap:'ВЛАСТЬ',word:'ХА!',col:['#ffca28','#fff3e0'],left:1}]}],
+ plaza:[{bg:'plaza1',d:300,a:[RUN(),SASH(),...D4(60,false)],l:[['САША','Рэй! Грант! Весна, лето... РЭ-Э-ЭЙ!'],['СТЁПА','Он бежит за ними уже четвёртый сезон!']]}],
+ cinema:[{bg:'cinema',d:380,a:[A('samcouple',260,260)],l:[['НАСТЯ','Андрей, тише, кино! Ха-ха-ха!'],['АНДРЕЙ','Это ты громко смеёшься! Ха-ха-ха!'],['БИЛЕТЁРША','ТИШЕ!!!']],ins:[{k:'usher',from:.68,cap:'БИЛЕТЁРША',word:'ТС-С!'}]}],
+ village:[{bg:'village',d:380,a:[A('svetak',280,280,{dir:-1,st:'sushki'}),A('goose',400,400,{dir:-1})],l:[['СВЕТА С БОНЕЙ','Гусь! Сушку будешь?'],['ГУСЬ','ГА!'],['СВЕТА С БОНЕЙ','Вот. Даже гуси меня слушаются.']],ins:[{k:'goose',from:.36,to:.7,cap:'ГУСЬ',word:'ГА!'}]}],
+ show:[{bg:'show',d:380,a:[A('phonelady',300,300,{dir:-1}),A('buba',345,345,{dir:-1}),A('minidog',260)],l:[['СУДЬЯ','Лучшая шапка выставки — у Светы!'],['СВЕТА С БУБОЙ','Алло, мам! Я победила! Шапкой!'],['БУБА','Гав! (а я?)']],ins:[{k:'buba',from:.68,cap:'БУБА',word:'А Я?'}]}],
+ beach:[{bg:'beach',d:260,a:[A('samcouple',300,300,{dir:-1})],l:[['АНДРЕЙ','Настя, Фина в песке как пончик в сахаре! Ха-ха!'],['НАСТЯ','Ха-ха-ха! Андрей, ты тоже!']]},CL('fina',[['ФИНА','Я теперь песчаное облачко.']],['#ffe082','#fff8e1'])],
+ stairs:[{bg:'stairs',d:260,a:[A('svetak',150,150,{st:'pester'}),A('phonelady',320,320,{dir:-1})],l:[['СВЕТА С БОНЕЙ','Лифт сломан? Я разберусь, я тут главная.'],['СВЕТА С БУБОЙ','Алло, лифт? С вами поговорит Света. Другая.']]}],
+ museum:[{bg:'museum',night:.45,d:260,a:[A('svetak',300,300,{dir:-1,st:'sushki'})],l:[['СВЕТА С БОНЕЙ','Динозаврик, сушечку?'],['ЛОКИ','Не корми его!!!']],ins:[{k:'loki',from:.5,cap:'ЛОКИ',word:'НЕТ!'}]}],
+ build:[{bg:'build',d:260,a:[RUN(),SASH(),A('worker',420,420,{dir:-1})],l:[['СТРОИТЕЛЬ','Посторонним вход воспрещён!'],['САША','Скажите это Рэю и Гранту!']]}],
+ circus:[{bg:'circus',d:260,a:[A('svetak',200,200,{st:'sushki'}),A('clown',360,360,{dir:-1})],l:[['КЛОУН','Бип-бип! Номер с жонглированием!'],['СВЕТА С БОНЕЙ','Жонглируй сушками. Это моё распоряжение.']],ins:[{k:'clown',from:.6,cap:'КЛОУН',word:'БИП?'}]}],
+ aqua:[{bg:'aqua',d:260,a:[A('samcouple',300,300,{dir:-1})],l:[['НАСТЯ','Андрей, мокрая Фина такая худенькая! Ха-ха!'],['АНДРЕЙ','Ха-ха-ха! Её в два раза меньше!']]},CL('fina',[['ФИНА','Не смотрите на меня. Я мокрая.']],['#4fc3f7','#b3e5fc'])],
+ metro:[{bg:'metro',d:260,shake:2,a:[A('phonelady',180,180),A('buba',225,225),A('svetak',360,360,{dir:-1,st:'sushki'})],l:[['СВЕТА С БУБОЙ','Алло?! Я в метро! Меня узнают по шапке!'],['СВЕТА С БОНЕЙ','Граждане, сушки! Передаём по вагону!']],ins:[{k:'babka',from:.6,cap:'БАБУШКА',word:'ВОЗЬМУ!'}]}],
+ school:[{bg:'city',d:380,a:[A('svetak',150,150,{st:'sushki'}),A('kid',300,300,{dir:-1})],l:[['СВЕТА С БОНЕЙ','Дети, на перемене всем по сушке!'],['РЕБЁНОК','Ура! Тётя Света — директор!'],['СВЕТА С БОНЕЙ','Пока нет. Но скоро.']]}],
+ pirate:[{bg:'pirate',d:380,sfx:'splash',a:[RUN(),SASH()],l:[['ПИРАТ','Человек за бортом!'],['САША','Не человек! Рэй и Грант!'],['ПИРАТ','...Собаки за бортом!']],ins:[{k:'grant',from:.3,to:.66,cap:'ГРАНТ',word:'БУЛЬК'}]}],
+ castle:[{bg:'castle',d:380,a:[A('phonelady',300,300,{dir:-1}),A('buba',345,345,{dir:-1})],l:[['РЫЦАРЬ','Кто идёт? Под каким флагом?'],['СВЕТА С БУБОЙ','Вот флаг! На шапке!'],['РЫЦАРЬ','...Проходите, ваше величество.']]}],
+ vet:[{bg:'vet',d:260,a:[A('samcouple',300,300,{dir:-1})],l:[['НАСТЯ','Доктор, Фина весит как облако! Ха-ха!'],['АНДРЕЙ','Под шерстью она маленькая! Ха-ха-ха!']]},CL('fina',[['ФИНА','Это не шерсть. Это я.']],['#e1f5fe','#ffffff'])]};
+for(const k in MORE)if(CUT[k])CUT[k].push(...MORE[k]);
+// close-ups for the opening shot of some levels too ("cartoon" inserts)
+const INS0={city:{k:'loki',from:.6,cap:'ЛОКИ',word:'ЕСТЬ!'},metro:{k:'lexi',from:.5,cap:'ЛЕКСИ',word:'ОХ...'},candy:{k:'loki',from:.5,cap:'ЛОКИ',word:'НЯМ!'},vet:{k:'tosya',from:.3,to:.66,cap:'ТОСЯ',word:'НЕТ!'},
+ museum:{k:'loki',from:.6,cap:'ЛОКИ',word:'А-А-А!'},stairs:{k:'lexi',from:.2,to:.5,cap:'ЛЕКСИ',word:'ПЕШКОМ?!'},cinema:{k:'stepa',from:.6,cap:'СТЁПА',word:'ПОПКОРН!'},dream:{k:'lexi',from:.6,st:'lie',cap:'ЛЕКСИ СПИТ',word:'Zzz'}};
+for(const k in INS0)if(CUT[k]&&!CUT[k][0].ins)CUT[k][0].ins=[INS0[k]];
 
 // ================= RENDER =================
 function drawWeather(){if(!L)return;
