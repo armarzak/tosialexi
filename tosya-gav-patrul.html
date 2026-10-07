@@ -3111,7 +3111,7 @@ LEVELS.find(l=>l.theme==='park').story=LEVELS.find(l=>l.theme==='park').story.re
  LEVELS.length=0;CLEARMSG.length=0;for(const [l,m] of [first,...mid,last]){LEVELS.push(l);CLEARMSG.push(m)}}
 try{save=clamp(+localStorage.getItem('tosya_lvl')||0,0,LEVELS.length-1)}catch(e){}
 // ---- menus with 3 columns (36 levels) ----
-const COLS=3;function RH(){return ROWS>13?15:17}
+const COLS=3;function RH(){return ROWS>15?13:ROWS>13?15:17}
 let ROWS=Math.ceil(LEVELS.length/COLS);
 function levelGrid(sel,lockFrom,x0,y0){LEVELS.forEach((l,i)=>{const col=i/ROWS|0,row=i%ROWS,x=x0+col*152,y=y0+row*RH(),on=sel===i,lock=i>lockFrom;if(on)drawBoneIcon(x-15,y,'#ffe066');
  const nm=l.name.length>14?l.name.slice(0,13)+'.':l.name,c=on?'#ffe066':lock?'#777777':'#ffffff';txt((i+1)+'.',x,y,8,c);txt(nm,x+(i<9?18:26),y,8,c)})}
@@ -3133,7 +3133,7 @@ drawGallery=function(){bgScroll('forest',.5);panel(4,4,472,262);txt('ЗАСТА�
 {const _dt=drawTitle;drawTitle=function(){_dt();const T0=G.t%1500;if(T0<900){const x=W+60-T0*.7,st=SVK_ST[(G.t/1500|0)%4];ctx=MAIN;blit(svetaSprite(st,[0,1,2,1,0,-1,-2,-1][(G.t>>2)&7],(G.t>>2)%4,0),x,GY,-1,{sc:1.2});
   if(T0>200&&T0<700){const ls=SVK_LINES[st],s=ls[(G.t/1500|0)%ls.length];ctx.font='8px '+FONT;const w=Math.ceil(ctx.measureText(s).width)+10,bx=Math.round(Math.min(W-w-4,Math.max(4,x-w/2))),by=GY-60;R(bx,by,w,14,'#ffffff');R(bx,by,w,1,'#222222');R(bx,by+13,w,1,'#222222');txt(s,bx+5,by+3,8,'#c62828','left','')}}}}
 // water only in the gaps for the jungle river and the aquapark pools (the ground stays visible)
-{const _dw=drawWaterFront;drawWaterFront=function(){if(L.theme!=='jungle'&&L.theme!=='aqua')return _dw();const c=MAIN,gs=grounds.slice().sort((a,b)=>a.x-b.x),gaps=[];let px=-1e6;
+{const _dw=drawWaterFront;drawWaterFront=function(){if(!['jungle','aqua','dino'].includes(L.theme))return _dw();const c=MAIN,gs=grounds.slice().sort((a,b)=>a.x-b.x),gaps=[];let px=-1e6;
  for(const g of gs){if(g.x>px)gaps.push([px,g.x]);px=Math.max(px,g.x+g.w)}gaps.push([px,1e6]);
  for(const [a,b] of gaps){const x0=Math.max(a,cam-2),x1=Math.min(b,cam+W+2);if(x1<=x0)continue;c.fillStyle=L.theme==='aqua'?'#29b6f6':'#2a8ad0';c.fillRect(x0,GY+3,x1-x0,H-GY-3);c.fillStyle=L.theme==='aqua'?'#0288d1':'#1d6aa8';c.fillRect(x0,GY+16,x1-x0,H-GY-16);
   c.fillStyle='#bfe9ff';for(let x=Math.ceil(x0);x<x1-5;x+=9)c.fillRect(x,GY+4+Math.round(Math.sin((x+frame*1.5)*.05)*2),5,1)}}}
@@ -3583,6 +3583,229 @@ try{save=clamp(+localStorage.getItem('tosya_lvl')||0,0,LEVELS.length-1)}catch(e)
 stretchShots();
 // bosses can have close-ups too
 {const _ba=bigActor;bigActor=function(k,st,t,cx,fy,sc,talk){if(GB_DRAW[k]){const d=BOSSDEF[k],sw=d.w+44,sh=d.h+40,a=(t>>4)%2;ctx=MAIN;blit(sprite(`gb|${k}|0|${a}|${(t>>3)%2}`,sw,sh,sw/2,sh-4,()=>GB_DRAW[k](0,a,(t>>3)%2)),cx,fy-(talk?((t>>3)%2)*2:0),1,{sc:sc*.9});return}_ba(k,st,t,cx,fy,sc,talk)}}
+
+// ================= v3.0: 7 more levels — dino island, inventor's lab, toy room, train station, stadium, honey apiary, ninja garden =================
+Object.assign(SONGS,{
+ dino:{bpm:132,mel:seq('E4 - G4 A4 B4 - A4 G4 E4 - D4 E4 G4 - - - E4 - G4 A4 D5 - B4 A4 G4 - E4 D4 E4 - - -'),bass:seq('E2 - E2 B2 E2 - E2 B2 D2 - D2 A2 D2 - D2 A2 C2 - C2 G2 C2 - C2 G2 B1 - B1 F#2 E2 - - -')},
+ lab:{bpm:144,mel:seq('C5 D#5 G5 C6 G5 D#5 C5 - D5 F5 A#5 D6 A#5 F5 D5 - C5 D#5 G5 C6 D6 C6 A#5 G5 G#5 - G5 - C5 - - -'),bass:seq('C3 C3 C3 C3 C3 C3 C3 C3 A#2 A#2 A#2 A#2 A#2 A#2 A#2 A#2 G#2 G#2 G#2 G#2 G2 G2 G2 G2 C3 - - - C3 - - -')},
+ toys:{bpm:138,mel:seq('C5 E5 G5 E5 C5 E5 G5 - D5 F5 A5 F5 D5 F5 A5 - E5 G5 C6 G5 E5 G5 C6 - B5 G5 D5 G5 C6 - - -'),bass:seq('C3 - G2 - C3 - G2 - D3 - A2 - D3 - A2 - E3 - C3 - E3 - C3 - G2 - B2 - C3 - - -')},
+ train:{bpm:150,mel:seq('G4 - G4 B4 D5 - D5 B4 C5 - C5 E5 G5 - - - F5 - E5 D5 C5 - B4 A4 G4 - A4 B4 G4 - - -'),bass:seq('G2 D3 G2 D3 G2 D3 G2 D3 C3 G3 C3 G3 C3 G3 C3 G3 D3 A3 D3 A3 D3 A3 D3 A3 G2 D3 G2 D3 G2 - - -')},
+ stadium:{bpm:156,mel:seq('C5 C5 C5 - C5 C5 C5 - E5 G5 E5 C5 D5 - - - D5 D5 D5 - D5 D5 D5 - F5 A5 F5 D5 C5 - - -'),bass:seq('C3 - G2 - C3 - G2 - C3 - G2 - G2 - D3 - G2 - D3 - G2 - D3 - G2 - D3 - C3 - - -')},
+ bees:{bpm:128,mel:seq('A4 B4 C5 B4 A4 B4 C5 E5 D5 C5 B4 C5 A4 - - - A4 B4 C5 B4 A4 B4 C5 E5 F5 E5 D5 B4 A4 - - -'),bass:seq('A2 - E3 - A2 - E3 - F2 - C3 - E2 - B2 - A2 - E3 - A2 - E3 - D3 - E3 - A2 - - -')},
+ ninja:{bpm:124,mel:seq('E5 - A4 - C5 D5 E5 - G5 - E5 - D5 - C5 - D5 - A4 - C5 D5 E5 - D5 C5 A4 - - - - -'),bass:seq('A2 - - - A2 - E3 - D3 - - - D3 - A2 - F2 - - - G2 - - - A2 - E2 - A2 - - -')}});
+const DINO={name:'ОСТРОВ ДИНОЗАВРОВ',short:'Динозавры',theme:'dino',song:'dino',water:true,waterFrom:0,arena:3300,boss:'stego',
+ story:'Собаки нашли машину времени (это была стиральная машина, но неважно) и попали к динозаврам!\n\nПещерные люди кидаются камнями, маленькие рапторы бегают стаями, через реку — по брёвнам и папоротникам.\n\nВ долине пасётся Стегозавр «Шиповик». У него шипы на спине, прыгать на него больно! Пусть врежется в скалу, тогда бей!',
+ build(a){a.g(0,760);a.g(830,1560);a.g(1640,2320);a.g(2400,3780);a.d('volcano',10);a.row('treat',180,GY-22,5);a.e('caveman',320);a.e('raptor',440);a.p('jbranch',500,GY-60,90);a.row('treat',505,GY-78,5);a.e('raptor',640);a.p('log',760,GY-10,70,10);a.cp(880);
+  a.e('caveman',960);a.p('rock',1040,GY-14,40,14);a.e('raptor',1120);a.e('raptor',1170);a.p('jbranch',1250,GY-62,100);a.row('treat',1260,GY-80,6);a.e('caveman',1400);a.i('cone',1480,GY-22);a.p('log',1560,GY-10,80,10);a.cp(1700);
+  a.e('raptor',1800);a.e('caveman',1900);a.p('rock',1980,GY-14,40,14);a.e('raptor',2080);a.p('jbranch',2140,GY-60,90);a.i('bone',2160,GY-78);a.p('log',2320,GY-10,80,10);a.cp(2460);
+  a.e('caveman',2560);a.e('raptor',2660);a.e('raptor',2720);a.p('rock',2800,GY-14,40,14);a.e('caveman',2920);a.e('raptor',3080);a.e('svetak',2500,GY,{range:40})}};
+const LAB={name:'ЛАБОРАТОРИЯ ИЗОБРЕТАТЕЛЯ',short:'Лаборатория',theme:'lab',song:'lab',arena:3300,boss:'robodog',
+ story:'Соседский изобретатель позвал собак испытать новые изобретения! Всем выдали защитные очки и халаты.\n\nРоботы-помощники стреляют искрами, слизь из пробирок прыгает по полу, по трубам можно лазить.\n\nА главное изобретение — Робо-Пёс — вышло из-под контроля! Пусть разгонится и врежется в стену, тогда бей!',
+ build(a){a.g(0,3780);a.d('labdoor',10);a.row('treat',180,GY-22,5);a.e('scibot',320);a.p('table',400,GY-30,80);a.row('treat',410,GY-50,5);a.e('slime',560);a.p('pipe',640,GY-40,20,40);a.e('scibot',740);a.cp(860);
+  a.e('slime',960);a.e('slime',1010);a.p('table',1080,GY-30,80);a.p('table',1180,GY-60,80);a.row('treat',1190,GY-80,5);a.e('scibot',1320);a.p('pipe',1420,GY-50,20,50);a.i('cone',1424,GY-68);a.e('slime',1520);a.cp(1620);
+  a.e('scibot',1720);a.e('slime',1820);a.p('table',1900,GY-30,80);a.e('scibot',2020);a.p('pipe',2120,GY-40,20,40);a.p('pipe',2140,GY-60,20,60);a.row('treat',2120,GY-78,3);a.e('slime',2240);a.cp(2320);
+  a.e('scibot',2420);a.e('slime',2520);a.p('table',2600,GY-30,80);a.i('bone',2630,GY-50);a.e('scibot',2760);a.e('slime',2880);a.e('scibot',3040);a.e('svetak',900,GY,{range:40})}};
+const TOYS={name:'ДЕТСКАЯ С ИГРУШКАМИ',short:'Игрушки',theme:'toys',song:'toys',arena:3300,boss:'windbear',
+ story:'Ночью игрушки в детской оживают! Собаки уменьшились и бегают среди кубиков. У каждой на спине заводной ключик.\n\nОловянные солдатики маршируют и стреляют пробками, заводные мышки носятся, кубики — отличные ступеньки.\n\nГлавный в детской — Заводной Медведь. Он топает и бьёт в барабан! Когда завод кончится, бей!',
+ build(a){a.g(0,3780);a.d('toybox',10);a.row('treat',180,GY-22,5);a.e('tsoldier',320);a.p('tblock',400,GY-20,20,20);a.p('tblock',420,GY-20,20,20);a.p('tblock',410,GY-40,20,20);a.row('treat',410,GY-58,2);a.e('wmouse',540);a.p('shelf',620,GY-60,80);a.e('tsoldier',740);a.cp(860);
+  a.e('wmouse',940);a.e('tsoldier',1040);a.p('tblock',1120,GY-20,20,20);a.p('tblock',1140,GY-40,20,40);a.p('tblock',1160,GY-60,20,60);a.row('treat',1160,GY-78,2);a.e('wmouse',1280);a.e('tsoldier',1400);a.i('cone',1480,GY-22);a.cp(1600);
+  a.e('tsoldier',1700);a.e('wmouse',1800);a.p('shelf',1880,GY-64,90);a.row('treat',1890,GY-82,6);a.e('tsoldier',2020);a.p('tblock',2100,GY-20,20,20);a.p('tblock',2120,GY-20,20,20);a.e('wmouse',2200);a.cp(2300);
+  a.e('tsoldier',2400);a.e('wmouse',2500);a.p('tblock',2580,GY-20,20,20);a.p('tblock',2580,GY-40,20,20);a.i('bone',2584,GY-58);a.e('tsoldier',2700);a.e('wmouse',2820);a.e('tsoldier',2960);a.e('wmouse',3100)}};
+const TRAIN={name:'ВОКЗАЛ И ПОЕЗД',short:'Поезд',theme:'train',song:'train',arena:3300,boss:'loco',
+ story:'Семья едет на море на поезде! Собаки в фуражках проводников бегут по перрону и по крышам вагонов.\n\nПроводники требуют билеты, чемоданы на колёсиках катаются сами, голуби воруют пирожки.\n\nА в конце платформы пыхтит Паровоз «Чух-Чух». Перепрыгни его разгон, а когда он врежется в тупик, бей!',
+ build(a){a.g(0,3780);a.d('station',10);a.row('treat',180,GY-22,5);a.e('conductor',320);a.e('suitcase',440);a.p('wagon2',520,GY-44,150,44);a.row('treat',540,GY-62,8);a.e('pigeon',600,GY-44);a.e('suitcase',760);a.cp(860);
+  a.e('conductor',960);a.p('wagon2',1040,GY-44,150,44);a.p('wagon2',1210,GY-44,150,44);a.e('pigeon',1100,GY-44);a.row('treat',1220,GY-62,8);a.e('suitcase',1420);a.i('cone',1500,GY-22);a.e('conductor',1540);a.cp(1620);
+  a.e('suitcase',1720);a.e('pigeon',1800);a.p('bench',1880,GY-14,60);a.e('conductor',1980);a.p('wagon2',2060,GY-44,150,44);a.i('bone',2120,GY-62);a.e('suitcase',2280);a.cp(2340);
+  a.e('conductor',2440);a.e('suitcase',2540);a.p('wagon2',2620,GY-44,150,44);a.row('treat',2640,GY-62,8);a.e('pigeon',2700,GY-44);a.e('conductor',2860);a.e('suitcase',3000);a.e('svetak',900,GY,{range:40})}};
+const STADIUM={name:'ФУТБОЛЬНЫЙ СТАДИОН',short:'Футбол',theme:'stadium',song:'stadium',arena:3300,boss:'keeper',
+ story:'Финал кубка двора! Собаки играют за команду «Гав-Патруль», у каждой футболка со своим номером.\n\nФутболисты бьют мячами (перепрыгивай!), судья свистит, болельщики прыгают на трибунах.\n\nВ воротах стоит Вратарь-Гигант. Он отбивает мячи и прыгает! Когда устанет после прыжка, бей!',
+ build(a){a.g(0,3780);a.d('scoreboard',10);a.row('treat',180,GY-22,5);a.e('footballer',320);a.e('referee',440);a.p('goalp',520,GY-50,60);a.row('treat',525,GY-68,4);a.e('fan',660);a.e('footballer',760);a.cp(860);
+  a.e('referee',960);a.e('footballer',1060);a.p('bench',1140,GY-14,60);a.p('goalp',1220,GY-50,60);a.row('treat',1225,GY-68,4);a.e('fan',1340);a.e('footballer',1440);a.i('cone',1500,GY-22);a.cp(1600);
+  a.e('footballer',1700);a.e('referee',1800);a.e('fan',1880);a.p('goalp',1960,GY-56,70);a.i('bone',1985,GY-74);a.e('footballer',2100);a.e('fan',2200);a.cp(2300);
+  a.e('footballer',2400);a.e('referee',2500);a.p('bench',2580,GY-14,60);a.e('footballer',2700);a.e('fan',2820);a.e('footballer',2960);a.e('referee',3080)}};
+const BEES={name:'МЕДОВАЯ ПАСЕКА',short:'Пчёлы',theme:'bees',song:'bees',arena:3300,boss:'queenbee',
+ story:'Дедушка-пасечник пустил собак на пасеку. Чтобы пчёлы не кусались, собаки нарядились пчёлками: полоски, усики и крылышки!\n\nНо дикие пчёлы не обманулись. Они пикируют, медвежата воруют мёд, а пасечники пыхают дымом. Прыгай по сотам!\n\nНад ульем летает Королева Пчёл. Она капает мёдом и жужжит! Когда устанет, бей!',
+ build(a){a.g(0,3780);a.d('hive',10);a.row('treat',180,GY-22,5);a.e('bee',320,GY-80);a.e('bear',440);a.p('comb',500,GY-56,70);a.row('treat',505,GY-74,5);a.e('bee',640,GY-90);a.p('flowerpot',720,GY-24,30,24);a.cp(860);
+  a.e('bear',960);a.e('bee',1040,GY-80);a.p('comb',1100,GY-50,70);a.p('comb',1200,GY-90,70);a.row('treat',1205,GY-108,5);a.e('beekeeper',1340);a.e('bee',1440,GY-100);a.i('cone',1500,GY-22);a.cp(1600);
+  a.e('bear',1700);a.e('bee',1780,GY-80);a.e('beekeeper',1880);a.p('comb',1960,GY-56,80);a.row('treat',1970,GY-74,5);a.e('bee',2080,GY-90);a.e('bear',2180);a.cp(2300);
+  a.e('beekeeper',2400);a.e('bee',2500,GY-80);a.p('flowerpot',2580,GY-24,30,24);a.i('bone',2588,GY-42);a.e('bear',2700);a.e('bee',2820,GY-100);a.e('beekeeper',2960);a.e('bee',3100,GY-80);a.e('svetak',900,GY,{range:40})}};
+const NINJA={name:'САД НИНДЗЯ',short:'Ниндзя',theme:'ninja',song:'ninja',arena:3300,boss:'panda',
+ story:'Собаки посмотрели мультик про ниндзя и отправились учиться в японский сад! Все в повязках, тихо, как тень.\n\nКоты-ниндзя прыгают из кустов, ниндзя-ученики кидают звёздочки, по бамбуку и крышам пагод можно прыгать.\n\nСенсей сада — Панда-Ниндзя. Он кувыркается и бросает сюрикены! Когда сядет жевать бамбук, бей!',
+ build(a){a.g(0,3780);a.d('torii',10);a.row('treat',180,GY-22,5);a.e('ninjacat',320);a.e('ninjak',440);a.p('pagoda',520,GY-60,90);a.row('treat',530,GY-78,5);a.p('bamboo',680,GY-50,12,50);a.e('ninjacat',760);a.cp(860);
+  a.e('ninjak',960);a.e('ninjacat',1060);a.p('bamboo',1140,GY-40,12,40);a.p('bamboo',1180,GY-70,12,70);a.row('treat',1178,GY-88,2);a.p('pagoda',1240,GY-90,90);a.e('ninjak',1260,GY-90);a.e('ninjacat',1400);a.i('cone',1480,GY-22);a.cp(1600);
+  a.e('ninjacat',1700);a.e('ninjak',1800);a.p('pagoda',1880,GY-60,100);a.row('treat',1890,GY-78,6);a.e('ninjacat',2020);a.p('bamboo',2120,GY-50,12,50);a.e('ninjak',2220);a.cp(2320);
+  a.e('ninjacat',2420);a.e('ninjak',2520);a.p('pagoda',2600,GY-60,90);a.i('bone',2630,GY-78);a.e('ninjacat',2760);a.e('ninjak',2880);a.e('ninjacat',3020);a.e('ninjak',3140)}};
+// ---- enemies ----
+Object.assign(LOOKS2,{
+ caveman:{skin:'#e0ac69',hair:'#5d4037',long:1,shirt:'#c8873f',pants:'#a0632a',shoes:'#e0ac69'},
+ conductor:{skin:'#f1c27d',hair:'#5d4037',shirt:'#1a237e',pants:'#1a237e',shoes:'#212121',hat:'cap',hatC:'#1a237e'},
+ footballer:{skin:'#e0ac69',hair:'#212121',shirt:'#e53935',pants:'#ffffff',shoes:'#212121'},
+ referee:{skin:'#f1c27d',hair:'#9e9e9e',shirt:'#212121',pants:'#212121',shoes:'#212121'},
+ beekeeper:{skin:'#f1c27d',hair:'#ffffff',shirt:'#fafafa',pants:'#fafafa',shoes:'#424242'},
+ ninjak:{skin:'#f1c27d',hair:'#212121',shirt:'#263238',pants:'#263238',shoes:'#263238'}});
+Object.assign(EDEF,{caveman:[14,32,2],raptor:[22,18,1],scibot:[16,16,2],slime:[16,10,1],tsoldier:[12,26,2],wmouse:[16,10,1],conductor:[14,32,2],suitcase:[16,18,1],footballer:[14,32,2],referee:[14,32,2],bee:[14,10,1],bear:[20,20,2],beekeeper:[14,32,2],ninjacat:[18,14,1],ninjak:[14,32,2]});
+Object.assign(SCORE,{caveman:250,raptor:200,scibot:200,slime:100,tsoldier:200,wmouse:100,conductor:250,suitcase:150,footballer:250,referee:200,bee:150,bear:200,beekeeper:250,ninjacat:200,ninjak:250});
+Object.assign(CRY,{caveman:'Угх... ушёл в пещеру',raptor:'Рррр... пи!',scibot:'Ошибка 404!',slime:'Хлюп!',tsoldier:'Отступаем!',wmouse:'Завод кончился...',conductor:'Ладно, без билета!',suitcase:'Колёсико отвалилось!',footballer:'Офсайд!',referee:'Фьють... удалён',bee:'Бзз... улетаю',bear:'Мёд был вкусный!',beekeeper:'Апчхи, дым!',ninjacat:'Мяу... исчезаю!',ninjak:'Хай-я... ой'});
+Object.assign(EXTRA_INIT,{bee(e){e.fly=true}});
+Object.assign(EXTRA_AI,{
+ caveman(e,dx,dy,adx){if(!thrower(e,dx,dy,adx,'rockp',3,85,'Угх!'))patrol(e,.5,40)},
+ raptor(e,dx,dy,adx){if(!chase(e,adx,dy,dx,2.4))patrol(e,1.2,80);else if(!e.said){e.said=1;pop(e.x,e.y-12,'Рраа!','#8bc34a')}if(adx>200)e.said=0;if(e.onGround&&e.t%55===0)e.vy=-3.4},
+ scibot(e,dx,dy,adx){e.vx=0;if(adx<230&&Math.abs(dy)<40){e.dir=sgn(dx);if(e.throwT>0)e.throwT--;if(--e.cd<=0){e.cd=80;e.throwT=10;jetAt(e,'zap',3.4);pop(e.x-10,e.y-12,'Бззт!','#80deea')}}else patrol(e,.8,60)},
+ slime(e,dx,dy,adx){patrol(e,.6,60);if(e.onGround&&e.t%45===0&&adx<200){e.vy=-3.8;e.vx=sgn(dx)*1.4;e.dir=sgn(dx)}},
+ tsoldier(e,dx,dy,adx){if(!thrower(e,dx,dy,adx,'cork',3.2,80,'Пли!'))patrol(e,.7,60)},
+ wmouse(e){patrol(e,2.6,120)},
+ conductor(e,dx,dy,adx){if(chase(e,adx,dy,dx,1.7)){if(!e.said){e.said=1;say(e,'Предъявите билет!','#1a237e')}}else{patrol(e,.5,50);if(adx>200)e.said=0}},
+ suitcase(e){patrol(e,2.2,120)},
+ footballer(e,dx,dy,adx){e.vx=0;if(adx<240&&Math.abs(dy)<40){e.dir=sgn(dx);if(e.throwT>0)e.throwT--;if(--e.cd<=0){e.cd=85;e.throwT=10;projs.push({kind:'sball',x:e.x+e.w/2+e.dir*8,y:e.y+20,w:8,h:8,vx:e.dir*3,vy:-2.6,g:.18,life:160,t:0,bounce:2});S.toss();pop(e.x-10,e.y-12,'Пас!','#ffffff')}}else patrol(e,.9,60)},
+ referee(e,dx,dy,adx){patrol(e,1,80);if(adx<150&&e.t%90===0){say(e,'ФЬЮ-Ю-Ють! Жёлтая карточка!','#fbc02d');tone(2400,.2,'square',.03)}},
+ bee(e,dx,dy,adx){swoop(e,dx,dy,adx,'Бзззз!','#ffd54f')},
+ bear(e,dx,dy,adx){patrol(e,.7,70);if(adx<160&&e.t%100===0)pop(e.x,e.y-12,'Мёд! Мой!','#ffb300')},
+ beekeeper(e,dx,dy,adx){if(!thrower(e,dx,dy,adx,'honey',3,90,'Пых-пых!'))patrol(e,.4,40)},
+ ninjacat(e,dx,dy,adx){patrol(e,1.6,90);if(e.onGround&&adx<160&&e.t%40===0){e.vy=-5;e.vx=sgn(dx)*2;e.dir=sgn(dx);pop(e.x,e.y-12,'Мяу-я!','#ffffff')}},
+ ninjak(e,dx,dy,adx){e.vx=0;if(adx<250&&Math.abs(dy)<60){e.dir=sgn(dx);if(e.throwT>0)e.throwT--;if(--e.cd<=0){e.cd=80;e.throwT=10;jetAt(e,'shuriken',3.4);pop(e.x-10,e.y-12,'Хай-я!','#cfd8dc')}}else patrol(e,.6,50)}});
+// footballs bounce off the floor
+{const _up=updProjs;updProjs=function(){for(const q of projs)if(q.kind==='sball'&&q.bounce>0&&q.vy>0&&q.y+q.h>=GY-1){q.vy=-q.vy*.7;q.y=GY-q.h-1;q.bounce--}_up()}}
+Object.assign(EXTRA_SPR,{
+ caveman:e=>hs(e,(s,t)=>{R(-5,-20,10,3,'#5d4037');for(let x=-4;x<5;x+=3)R(x,-18,1,1,'#3e2723');R(-4,-37,8,2,'#5d4037');R(4,-24,2,12,'#8d6e63');circ(5,-26,3,'#8d6e63')}),
+ conductor:e=>hs(e,(s,t)=>{R(-4,-36,9,1,'#ffd54f');R(-1,-20,2,2,'#ffd54f');R(3,-19,1,1,'#ffd54f');if(!t){R(4,-22,5,4,'#fff59d')}}),
+ footballer:e=>hs(e,(s,t)=>{txt('9',0,-21,5,'#ffffff','center','');R(-5,-11,10,1,'#212121')}),
+ referee:e=>hs(e,(s,t)=>{for(let y=-22;y<-11;y+=3)R(-5,y,10,1,'#ffffff');R(3,-28,2,2,'#c0c0c0');R(-6,-16,3,4,'#fbc02d')}),
+ beekeeper:e=>hs(e,(s,t)=>{R(-6,-36,12,9,'#fafafa');R(-5,-34,10,6,'#9e9e9e88');R(-8,-37,16,2,'#fafafa');R(4,-24,4,6,'#bdbdbd');R(5,-28,2,4,'#9e9e9e')}),
+ ninjak:e=>hs(e,(s,t)=>{R(-4,-34,8,4,'#263238');R(-4,-30,8,3,'#263238');R(-4,-32,8,1,'#e53935');R(-7,-32,3,1,'#e53935')}),
+ raptor:e=>{const f=(e.t>>2)%2,air=e.onGround?0:1;return sprite(`rpt|${f}|${air}`,32,24,16,20,()=>{ell(-2,-10,9,5,'#7cb342');R(-12,-11,6,3,'#7cb342');circ(8,-15,5,'#7cb342');R(10,-14,6,3,'#7cb342');R(12,-12,4,1,'#ffffff');R(9,-17,2,2,'#ffeb3b');R(10,-17,1,1,'#000000');R(-4,-6,2,6-f*2,'#558b2f');R(1,-6,2,4+f*2,'#558b2f');R(4,-12,3,2,'#558b2f');for(let i=-8;i<4;i+=3)R(i,-15,2,2,'#33691e')})},
+ scibot:e=>{const f=(e.t>>3)%2;return sprite(`sb|${f}`,24,22,12,18,()=>{R(-7,-14,14,10,'#b0bec5');R(-7,-14,14,2,'#eceff1');R(-4,-11,8,4,'#263238');R(-3,-10,2,2,'#4dd0e1');R(1,-10,2,2,'#4dd0e1');R(-1,-18,2,4,'#78909c');circ(0,-19,1.5,f?'#ff5252':'#69f0ae');circ(-4,-2,2.5,'#424242');circ(4,-2,2.5,'#424242')})},
+ slime:e=>{const air=e.onGround?0:1;return sprite(`slm|${air}`,22,16,11,12,()=>{ell(0,-4-air,8-air,4+air*2,'#76ff03cc');ell(-2,-6-air,3,2,'#ccff90');R(-3,-6-air,1,2,'#1b5e20');R(2,-6-air,1,2,'#1b5e20')})},
+ tsoldier:e=>{const s=stepOf(e);return sprite(`ts|${s}`,22,32,11,28,()=>{R(-3+s,-8,2,8,'#1a237e');R(1-s,-8,2,8,'#1a237e');R(-4,-18,8,10,'#c62828');R(-4,-14,8,1,'#ffd54f');R(-1,-18,2,10,'#ffffff');R(-3,-24,6,6,'#f1c27d');R(-3,-30,6,6,'#212121');R(-4,-25,8,1,'#212121');R(1,-22,1,1,'#000000');circ(-2,-21,1,'#ef9a9a');R(4,-26,1,16,'#9e9e9e')})},
+ wmouse:e=>{const f=(e.t>>2)%2;return sprite(`wm|${f}`,24,14,12,10,()=>{ell(0,-4,7,4,'#9e9e9e');circ(6,-5,3,'#9e9e9e');circ(4,-8,2,'#f48fb1');R(8,-5,2,1,'#e91e63');R(7,-7,1,1,'#000000');R(-10,-4,4,1,'#9e9e9e');R(-3,-11,2,4,'#ffd54f');R(-5,-12,6,2,'#ffd54f');R(-3,0+f,2,1,'#616161');R(2,0,2,1,'#616161')})},
+ suitcase:e=>{const f=(e.t>>2)%2,ci=((e.seed||0)*3)|0;return sprite(`sc2|${f}|${ci}`,24,24,12,20,()=>{const c=['#d84315','#1565c0','#2e7d32'][ci];R(-7,-16,14,14,c);R(-7,-16,14,2,dk(c,1.3));R(-2,-20,4,4,'#424242');R(-1,-19,2,2,'#00000000');R(-7,-9,14,1,dk(c));circ(-4,-1,1.5+f*.5,'#212121');circ(4,-1,2-f*.5,'#212121');R(-3,-13,6,3,'#ffffff')})},
+ bee:e=>{const f=(e.t>>1)%2;return sprite(`bee|${f}`,20,16,10,10,()=>{ell(0,-5,6,4,'#ffd54f');R(-3,-9,2,8,'#212121');R(1,-9,2,8,'#212121');circ(5,-6,2.5,'#212121');R(5,-7,1,1,'#ffffff');R(-7,-5,2,1,'#212121');ell(-1,-9-f,4,2,'#e1f5fecc');ell(2,-9-f,4,2,'#e1f5fecc')})},
+ bear:e=>{const s=Math.abs(e.vx)>.1?(e.t>>3)%2:0;return sprite(`br2|${s}`,28,26,14,22,()=>{ell(0,-9,9,8,'#8d6e63');circ(6,-15,5,'#8d6e63');circ(3,-19,2,'#6d4c41');circ(9,-19,2,'#6d4c41');ell(9,-13,2.5,2,'#d7ccc8');R(10,-14,2,1,'#212121');R(7,-16,1,1,'#000000');R(-5,-3,3,3-s,'#6d4c41');R(2,-3,3,3,'#6d4c41');R(-10,-14,6,7,'#ffb300');R(-10,-14,6,1,'#ffe082');R(-9,-17,4,2,'#8d6e63')})},
+ ninjacat:e=>{const air=e.onGround?0:1;return sprite(`nc|${air}`,26,22,13,18,()=>{ell(0,-7,8,5,'#37474f');circ(7,-11,4,'#37474f');R(5,-15,2,3,'#37474f');R(9,-15,2,3,'#37474f');R(4,-12,7,2,'#e53935');R(7,-12,1,1,'#ffeb3b');R(9,-12,1,1,'#ffeb3b');R(-10,-12,2,6,'#37474f');R(-3,-3,2,3,'#263238');R(3,-3,2,3,'#263238');if(air)R(-7,-15,3,1,'#e53935')})}});
+Object.assign(PROJ_DRAW,{
+ zap:(pr,x,y)=>{R(x,y+2,10,2,'#80deea');R(x+3,y,2,6,'#e0f7fa');R(x+7,y+1,2,4,'#ffffff')},
+ cork:(pr,x,y)=>{R(x+1,y+1,6,5,'#c8a070');R(x+1,y+1,6,1,'#e0c090')},
+ sball:(pr,x,y)=>blit(sprite('pj|sball',12,12,6,6,()=>{circ(0,0,5,'#ffffff');R(-1,-1,3,3,'#212121');R(-4,-3,2,2,'#212121');R(2,2,2,2,'#212121');R(3,-3,1,2,'#212121')}),x+4,y+4,1,{rot:pr.t*.3}),
+ honey:(pr,x,y)=>{circ(x+4,y+5,4,'#ffb300');R(x+3,y,2,3,'#ffb300');R(x+2,y+3,2,1,'#ffe082')},
+ shuriken:(pr,x,y)=>blit(sprite('pj|shur',12,12,6,6,()=>{for(let i=0;i<4;i++){ctx.save();ctx.rotate(i*Math.PI/2);ctx.fillStyle='#cfd8dc';ctx.beginPath();ctx.moveTo(0,-1);ctx.lineTo(5,0);ctx.lineTo(0,1);ctx.fill();ctx.restore()}circ(0,0,1.5,'#455a64')}),x+4,y+4,1,{rot:pr.t*.5})});
+// ---- platforms & decos ----
+Object.assign(ONEWAY,{comb:1,pagoda:1,goalp:1});
+Object.assign(PLAT_X,{
+ pipe(w,h){R(0,0,w,h,'#78909c');R(2,0,3,h,'#b0bec5');R(-2,0,w+4,4,'#607d8b');for(let y=10;y<h;y+=12)R(-1,y,w+2,2,'#546e7a');circ(w/2,h/2,3,'#ff5252')},
+ tblock(w,h){const cs=['#e53935','#1e88e5','#fdd835','#43a047','#8e24aa'];for(let y=0;y<h;y+=20){const c=cs[((y/20|0)*3+(w*7))%5];R(0,y,w,20,c);R(0,y,w,2,dk(c,1.3));R(w-2,y,2,20,dk(c,.75));txt('АБВГД'[(y/20|0)%5],w/2,y+6,8,'#ffffff','center','')}},
+ wagon2(w,h){R(0,0,w,h-8,'#2e7d32');R(0,0,w,3,'#66bb6a');R(0,h-12,w,4,'#1b5e20');for(let x=10;x<w-14;x+=24){R(x,8,16,12,'#e3f2fd');R(x,8,16,2,'#90caf9')}circ(16,h-4,5,'#212121');circ(w-16,h-4,5,'#212121');circ(16,h-4,2,'#9e9e9e');circ(w-16,h-4,2,'#9e9e9e');txt('ГАВ-ЭКСПРЕСС',w/2,h-22,5,'#ffd54f','center','')},
+ goalp(w,h,lh){R(0,0,w,4,'#ffffff');R(0,0,3,lh,'#ffffff');R(w-3,0,3,lh,'#ffffff');ctx.strokeStyle='#e0e0e0aa';ctx.lineWidth=1;ctx.beginPath();for(let x=4;x<w-3;x+=6){ctx.moveTo(x,4);ctx.lineTo(x,lh)}for(let y=8;y<lh;y+=6){ctx.moveTo(3,y);ctx.lineTo(w-3,y)}ctx.stroke()},
+ comb(w,h,lh){for(let x=0;x<w;x+=8){ctx.fillStyle=(x/8)%2?'#ffb300':'#ffca28';ctx.beginPath();for(let k=0;k<6;k++){const a=k*Math.PI/3;ctx.lineTo(x+4+Math.cos(a)*5,3+Math.sin(a)*5)}ctx.fill()}R(0,0,w,1,'#fff59d');R(w/2-1,7,2,lh-7,'#8d6e63');R(6,8,3,4,'#ffb300')},
+ pagoda(w,h,lh){ctx.fillStyle='#c62828';ctx.beginPath();ctx.moveTo(-8,4);ctx.quadraticCurveTo(w/2,-10,w+8,4);ctx.lineTo(w+4,8);ctx.lineTo(-4,8);ctx.fill();R(-4,6,w+8,2,'#8e0000');R(6,8,4,lh-8,'#8d1010');R(w-10,8,4,lh-8,'#8d1010');circ(w/2,8,4,'#ffd54f')},
+ bamboo(w,h){R(0,0,w,h,'#7cb342');R(2,0,2,h,'#aed581');for(let y=8;y<h;y+=12)R(-1,y,w+2,2,'#558b2f');R(-1,0,w+2,2,'#558b2f');ell(w+4,10,6,2,'#689f38')}});
+Object.assign(DECO_X,{
+ volcano(){ctx.fillStyle='#6d4c41';ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(60,-130);ctx.lineTo(100,-130);ctx.lineTo(160,0);ctx.fill();ell(80,-132,22,5,'#ff5722');for(let i=0;i<4;i++)circ(70+i*7,-142-i*8,6-i,'#9e9e9e88');R(66,-128,6,40,'#ff7043');R(92,-128,5,26,'#ff7043')},
+ labdoor(){R(0,-130,150,130,'#cfd8dc');R(0,-140,150,12,'#455a64');txt('ЛАБОРАТОРИЯ',75,-137,5,'#80deea','center','');R(55,-70,40,70,'#78909c');circ(30,-90,12,'#4dd0e1');circ(120,-96,8,'#ab47bc');R(26,-104,8,6,'#b0bec5');R(117,-106,6,4,'#b0bec5')},
+ toybox(){R(0,-50,130,50,'#ff7043');R(0,-50,130,4,'#ffab91');txt('ИГРУШКИ',65,-38,8,'#ffffff','center','');circ(30,-60,12,'#fdd835');R(80,-80,20,30,'#8d6e63');circ(90,-86,10,'#8d6e63');circ(84,-94,4,'#8d6e63');circ(96,-94,4,'#8d6e63')},
+ station(){R(0,-140,170,140,'#bcaaa4');R(0,-150,170,14,'#5d4037');txt('ВОКЗАЛ',85,-146,8,'#ffffff','center','');circ(85,-110,14,'#ffffff');R(84,-120,2,10,'#212121');R(85,-111,8,2,'#212121');R(60,-70,50,70,'#4e342e');for(let i=0;i<4;i++)R(10+i*40,-60,20,30,'#e3f2fd')},
+ scoreboard(){R(20,-160,6,160,'#9e9e9e');R(130,-160,6,160,'#9e9e9e');R(0,-170,160,50,'#212121');txt('ГАВ  3 : 2  КОТЫ',80,-155,5,'#ffeb3b','center','');txt('90:00',80,-140,8,'#ff5252','center','')},
+ hive(){ell(60,-50,40,50,'#ffb300');for(let y=-90;y<0;y+=14)R(22,y,76,3,'#e65100');R(52,-24,16,10,'#3e2723');R(56,-104,8,8,'#8d6e63');for(let i=0;i<5;i++){circ(110+i*8,-80+Math.sin(i)*20,3,'#ffd54f');R(108+i*8,-81+Math.sin(i)*20,2,2,'#212121')}},
+ torii(){R(20,-120,10,120,'#d32f2f');R(130,-120,10,120,'#d32f2f');R(0,-136,160,10,'#d32f2f');R(10,-112,140,6,'#d32f2f');R(-4,-140,168,4,'#212121');R(70,-128,20,12,'#212121');txt('道',80,-126,8,'#ffd54f','center','')}});
+Object.assign(DECOW,{volcano:170,labdoor:160,toybox:140,station:180,scoreboard:170,hive:150,torii:170});
+// ---- costumes for the new levels ----
+Object.assign(COSTUMES,{
+ caveman(g){R(g.x0+3,g.top-1,g.bl-8,g.bh-1,'#c8873f');for(let x=g.x0+5;x<g.x1-6;x+=5)circ(x,g.top+3,1.5,'#6d4c41');R(g.cx-4,g.hy-3,9,2,'#f5f5f5');R(g.cx-6,g.hy-4,3,4,'#f5f5f5');R(g.cx+4,g.hy-4,3,4,'#f5f5f5')},
+ labcoat(g){R(g.x1-14,g.top-1,11,g.bh+1,'#fafafa');R(g.x1-14,g.top-1,1,g.bh+1,'#e0e0e0');R(g.x1-9,g.top+2,2,2,'#4dd0e1');R(g.ex-4,g.ey-2,9,5,'#424242');R(g.ex-3,g.ey-1,7,3,'#b2ebf2');R(g.hx+1,g.ey,g.ex-g.hx-5,1,'#424242')},
+ windkey(g){const x=g.x0+(g.bl*.45|0);R(x,g.top-6,2,6,'#bdbdbd');ell(x-3,g.top-8,4,3,'#ffd54f');ell(x+5,g.top-8,4,3,'#ffd54f');circ(x+1,g.top-8,1.5,'#ffb300')},
+ conductor(g){R(g.hx-1,g.hy-4,g.hw+1,4,'#1a237e');R(g.hx+g.hw-4,g.hy-1,5,2,'#212121');R(g.hx+1,g.hy-3,g.hw-3,1,'#ffd54f');R(g.cx-1,g.hy-4,2,2,'#ffd54f');R(g.hx-3,g.top-1,3,3,'#e53935')},
+ jersey(g){R(g.x0+3,g.top,g.bl-7,g.bh-1,'#e53935');R(g.x0+3,g.top,g.bl-7,1,'#ef9a9a');R(g.x0+(g.bl>>1)-3,g.top+2,6,5,'#ffffff');R(g.x0+(g.bl>>1)-1,g.top+3,2,3,'#e53935');R(g.hx,g.hy-1,g.hw,2,'#ffffff')},
+ beesuit(g){for(let x=g.x0+3;x<g.x1-5;x+=6)R(x,g.top,3,g.bh-1,'#212121');R(g.x0+2,g.top,g.bl-6,1,'#ffd54f');ell(g.x0+g.bl*.4,g.top-4,5,3,'#e1f5fecc');ell(g.x0+g.bl*.4+5,g.top-5,4,2,'#e1f5fecc');R(g.hx+2,g.hy-7,1,7,'#212121');R(g.hx+6,g.hy-6,1,6,'#212121');circ(g.hx+2,g.hy-8,1.6,'#ffd54f');circ(g.hx+6,g.hy-7,1.6,'#ffd54f')},
+ ninjaband(g){R(g.hx-1,g.hy-1,g.hw+1,3,'#263238');R(g.hx-1,g.hy,g.hw+1,1,'#e53935');R(g.hx-5,g.hy,4,2,'#263238');R(g.hx-7,g.hy+2,3,2,'#263238');R(g.mx,g.my,8,3,'#263238')}});
+Object.assign(COSTUME_OF,{dino:'caveman',lab:'labcoat',toys:'windkey',train:'conductor',stadium:'jersey',bees:'beesuit',ninja:'ninjaband'});
+Object.assign(COSTUME_NAME,{caveman:'пещерные шкурки',labcoat:'очки и халаты',windkey:'заводные ключики',conductor:'фуражки проводников',jersey:'футболки с номерами',beesuit:'костюмы пчёлок',ninjaband:'повязки ниндзя'});
+// ---- backgrounds ----
+Object.assign(BUILD,{
+ dino(){const sky=skyCanvas(['#ff8a65','#ffab91','#ffcc80','#ffe0b2','#fff3e0']);{const p=ctx;ctx=sky.getContext('2d');circ(380,70,24,'#fff59d');for(let i=0;i<3;i++){const x=80+i*120;R(x,40+i*10,10,2,'#5d4037');R(x-6,38+i*10,6,2,'#5d4037');R(x+10,38+i*10,6,2,'#5d4037')}ctx=p}
+  const far=strip(960,GY,w=>{ctx.fillStyle='#8d6e63';ctx.beginPath();ctx.moveTo(500,GY);ctx.lineTo(620,GY-150);ctx.lineTo(660,GY-150);ctx.lineTo(800,GY);ctx.fill();ell(640,GY-152,22,5,'#ff5722');for(let i=0;i<6;i++){const X=i*160+20;R(X+10,GY-90,6,90,'#6d4c41');for(let k=0;k<6;k++)ell(X+13+Math.cos(k*1.05)*18,GY-92+Math.sin(k*1.05)*6,16,4,'#2e7d32')}});
+  const near=strip(960,GY,w=>{for(let i=0;i<14;i++){const X=hash(i*5)*w|0;for(let k=0;k<5;k++){ctx.strokeStyle='#33691e';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(X,GY);ctx.quadraticCurveTo(X+(k-2)*8,GY-30,X+(k-2)*16,GY-36+k%2*6);ctx.stroke()}}R(300,GY-60,40,30,'#8bc34a');circ(340,GY-62,10,'#8bc34a');R(300,GY-40,6,40,'#689f38');R(330,GY-40,6,40,'#689f38');R(260,GY-80,6,50,'#8bc34a')});
+  const t=tile(()=>{R(0,0,128,36,'#8d6e63');dith(0,6,128,30,'#795548',.35);R(0,0,128,5,'#7cb342');for(let k=0;k<4;k++)R(hash(k*3)*120|0,10+hash(k*7)*20|0,6,3,'#a1887f')});
+  return{sky,layers:[{c:far,f:.2,y:0},{c:near,f:.55,y:0}],fg:[],pit:'#01579b',tile:t}},
+ lab(){const sky=strip(W,GY,()=>{R(0,0,W,GY,'#37474f');for(let x=0;x<W;x+=40)R(x,0,2,GY,'#455a64');for(let y=0;y<GY;y+=30)R(0,y,W,1,'#455a64')});
+  const near=strip(960,GY,w=>{for(let x=0;x<w;x+=200){R(x+10,GY-120,80,100,'#263238');R(x+14,GY-116,72,60,'#1de9b6');for(let k=0;k<6;k++)R(x+18+k*11,GY-100+Math.sin(k)*14|0,8,2,'#004d40');R(x+20,GY-50,60,4,'#90a4ae');for(let k=0;k<4;k++){R(x+120+k*16,GY-60,8,30,'#eceff1');R(x+121+k*16,GY-48,6,18,['#ff4081','#76ff03','#40c4ff','#ffeb3b'][k])}}R(0,30,w,8,'#78909c');for(let x=0;x<w;x+=80)R(x,30,6,80,'#78909c')});
+  const t=tile(()=>{for(let y=0;y<36;y+=12)for(let x=0;x<128;x+=12){R(x,y,12,12,(x/12+y/12)%2?'#cfd8dc':'#eceff1')}R(0,0,128,2,'#90a4ae')});
+  return{sky,layers:[{c:near,f:.55,y:0}],fg:[],pit:'#102027',tile:t}},
+ toys(){const sky=strip(W,GY,()=>{R(0,0,W,GY,'#fff3e0');for(let x=0;x<W;x+=30)R(x,0,15,GY,'#ffe0b2');R(300,30,120,80,'#283593');R(304,34,112,72,'#5c6bc0');circ(380,60,10,'#fff59d');for(let k=0;k<12;k++)R(310+hash(k)*100|0,40+hash(k+3)*60|0,1,1,'#ffffff')});
+  const near=strip(960,GY,w=>{for(let x=0;x<w;x+=240){R(x+20,GY-120,90,6,'#8d6e63');R(x+20,GY-60,90,6,'#8d6e63');R(x+20,GY-120,6,120,'#6d4c41');R(x+104,GY-120,6,120,'#6d4c41');circ(x+50,GY-132,10,'#ef5350');R(x+70,GY-140,14,20,'#42a5f5');R(x+40,GY-80,20,20,'#fdd835');circ(x+90,GY-70,8,'#ab47bc');
+   R(x+150,GY-50,40,40,'#8d6e63');circ(x+170,GY-60,16,'#8d6e63');circ(x+158,GY-74,6,'#8d6e63');circ(x+182,GY-74,6,'#8d6e63');R(x+164,GY-62,3,3,'#212121');R(x+174,GY-62,3,3,'#212121');ell(x+170,GY-54,5,3,'#d7ccc8')}});
+  const t=tile(()=>{R(0,0,128,36,'#a1887f');for(let x=0;x<128;x+=16)R(x,0,1,36,'#8d6e63');R(0,0,128,3,'#bcaaa4');R(20,8,40,20,'#ef9a9a');R(24,12,32,12,'#f8bbd0')});
+  return{sky,layers:[{c:near,f:.55,y:0}],fg:[],pit:'#4e342e',tile:t}},
+ train(){const sky=skyCanvas(['#4fc3f7','#81d4fa','#b3e5fc','#e1f5fe','#ffffff']);{const p=ctx;ctx=sky.getContext('2d');cloud(60,20,'#ffffff','#ffffff','#e1f5fe');cloud(300,30,'#ffffff','#ffffff','#e1f5fe');ctx=p}
+  const far=strip(960,GY,w=>{for(let i=0;i<6;i++)panelka(i*160,i,false)});
+  const near=strip(960,GY,w=>{R(0,GY-110,w,8,'#8d6e63');for(let x=0;x<w;x+=120){R(x+10,GY-110,6,110,'#6d4c41');R(x+60,GY-104,40,14,'#263238');txt('ПУТЬ '+((x/120|0)%4+1),x+80,GY-100,5,'#ffeb3b','center','')}R(0,GY-14,w,3,'#9e9e9e');for(let x=0;x<w;x+=12)R(x,GY-11,8,3,'#6d4c41')});
+  const t=tile(()=>{R(0,0,128,36,'#9e9e9e');for(let x=0;x<128;x+=16)R(x,0,1,36,'#757575');R(0,0,128,4,'#fdd835');for(let x=0;x<128;x+=8)R(x,0,4,4,'#212121')});
+  return{sky,layers:[{c:far,f:.15,y:0},{c:near,f:.55,y:0}],fg:[],pit:'#37474f',tile:t}},
+ stadium(){const sky=skyCanvas(['#1565c0','#1e88e5','#42a5f5','#90caf9','#e3f2fd']);
+  const stands=strip(960,GY,w=>{for(let r=0;r<6;r++){R(0,GY-150+r*18,w,18,r%2?'#455a64':'#546e7a');for(let x=(r%2)*5;x<w;x+=10){const h=hash(x*7+r);circ(x+5,GY-142+r*18,4,['#e53935','#1e88e5','#fdd835','#ffffff'][(h*4)|0]);R(x+2,GY-138+r*18,6,6,'#263238')}}for(let x=60;x<w;x+=300){R(x,GY-200,6,60,'#9e9e9e');R(x-12,GY-210,30,12,'#eceff1')}});
+  const field=strip(960,GY,w=>{R(0,GY-30,w,30,'#43a047');for(let x=0;x<w;x+=60)R(x,GY-30,30,30,'#4caf50');R(0,GY-30,w,2,'#ffffff');for(let x=0;x<w;x+=200)R(x,GY-60,140,10,'#212121');for(let x=0;x<w;x+=200)txt('ГАВ-ПАТРУЛЬ',x+70,GY-58,5,'#fdd835','center','')});
+  const t=tile(()=>{R(0,0,128,36,'#43a047');for(let x=0;x<128;x+=32)R(x,0,16,36,'#4caf50');R(0,0,128,2,'#ffffff');R(60,0,2,36,'#ffffff')});
+  return{sky,layers:[{c:stands,f:.3,y:0},{c:field,f:.6,y:0}],fg:[],pit:'#1b5e20',tile:t}},
+ bees(){const sky=skyCanvas(['#81d4fa','#a5dcf8','#c8eaf6','#e6f5f0','#f6fbe8']);
+  const far=strip(960,GY,w=>{for(let x=0;x<w;x++){const u=x/w*Math.PI*2;R(x,(GY-50-10*Math.sin(u*2))|0,1,GY,'#9ccc65')}for(let i=0;i<40;i++)circ(hash(i*7)*w,GY-10-hash(i*3)*40,2,['#fdd835','#ffffff','#ec407a'][i%3])});
+  const near=strip(960,GY,w=>{for(let i=0;i<6;i++){const X=i*160+40;R(X,GY-40,40,40,'#ffffff');R(X-4,GY-46,48,8,'#ffb300');R(X,GY-28,40,2,'#e0e0e0');R(X,GY-16,40,2,'#e0e0e0');R(X+16,GY-10,8,4,'#5d4037');for(let k=0;k<4;k++)circ(X+50+k*6,GY-60+Math.sin(k*2)*8,2,'#ffd54f')}for(let i=0;i<20;i++){const X=hash(i*13)*w|0;wrapAt(w,X,8,XX=>{R(XX+3,GY-30,1,30,'#558b2f');for(let k=0;k<5;k++)circ(XX+3+Math.cos(k*1.25)*4,GY-32+Math.sin(k*1.25)*4,2.5,['#fdd835','#ec407a','#ffffff'][i%3]);circ(XX+3,GY-32,1.5,'#ff8f00')})}});
+  const t=tile(()=>{R(0,0,128,36,'#6d4c41');dith(0,6,128,30,'#5d4037',.3);R(0,0,128,6,'#8bc34a');for(let x=0;x<128;x+=4)if(hash(x)<.5)R(x,0,1,5,'#aed581')});
+  return{sky,layers:[{c:far,f:.15,y:0},{c:near,f:.5,y:0}],fg:[],pit:'#3e2723',tile:t}},
+ ninja(){const sky=skyCanvas(['#ffccbc','#ffab91','#f8bbd0','#fce4ec','#fff8e1']);{const p=ctx;ctx=sky.getContext('2d');circ(380,70,30,'#ff7043');ctx=p}
+  const far=strip(960,GY,w=>{ctx.fillStyle='#b39ddb';ctx.beginPath();ctx.moveTo(100,GY);ctx.lineTo(260,GY-150);ctx.lineTo(420,GY);ctx.fill();ctx.fillStyle='#ffffff';ctx.beginPath();ctx.moveTo(260,GY-150);ctx.lineTo(228,GY-120);ctx.lineTo(292,GY-120);ctx.fill();for(let i=0;i<3;i++){const X=560+i*130;for(let k=0;k<3;k++){R(X-30+k*10,GY-50-k*34,60-k*20,6,'#c62828');R(X-20+k*10,GY-44-k*34,40-k*20,28,'#4e342e')}}});
+  const near=strip(960,GY,w=>{for(let i=0;i<10;i++){const X=i*96+20;R(X,GY-140,6,140,'#7cb342');for(let y=GY-130;y<GY;y+=16)R(X-1,y,8,2,'#558b2f');ell(X+10,GY-120,10,3,'#689f38')}for(let i=0;i<5;i++){const X=hash(i*9)*w|0;for(let k=0;k<6;k++)circ(X+Math.cos(k)*10,GY-60+Math.sin(k*2)*8,5,'#f8bbd0');R(X-1,GY-60,3,60,'#5d4037')}});
+  const t=tile(()=>{R(0,0,128,36,'#d7ccc8');for(let y=2;y<36;y+=6)for(let x=0;x<128;x+=3)R(x+(y%12?0:1),y,2,1,'#bcaaa4');R(0,0,128,3,'#8d6e63')});
+  return{sky,layers:[{c:far,f:.15,y:0},{c:near,f:.55,y:0}],fg:[],pit:'#3e2723',tile:t}}});
+
+// ================= v3.0: bosses, cutscenes and wiring for the 7 new levels =================
+Object.assign(GBD,{
+ stego:{w:60,h:40,hp:12,name:'СТЕГОЗАВР «ШИПОВИК»',hint:'На шипы не прыгай! Бей, когда врежется в скалу',sp:.8,atk:['throw','charge','charge'],proj:'rockp',hello:'Хрррум! Кто топчет мои папоротники?',ouch:'Ой... скала твёрдая...',minion:'raptor'},
+ robodog:{w:44,h:36,hp:12,name:'РОБО-ПЁС',hint:'Перепрыгни разгон! Бей, когда врежется в стену',sp:1,atk:['throw','charge','ring','charge'],proj:'zap',ringSay:'БИП-БУП-ГАВ!',hello:'ГАВ.EXE ЗАПУЩЕН. ЦЕЛЬ: ВСЕ МЯЧИКИ.',ouch:'ПЕРЕЗАГРУЗКА... 1%... 2%...',minion:'scibot'},
+ windbear:{w:44,h:44,hp:12,name:'ЗАВОДНОЙ МЕДВЕДЬ',hint:'Перепрыгивай барабанные волны! Бей, когда завод кончится',sp:.7,hop:1,atk:['slam','throw','ring'],ringTired:1,proj:'cork',ringSay:'БУМ-БУМ-БУМ!',hello:'Тук-тук-тук! Кто не спит в детской?',ouch:'Завод... кончился... тик... так...',minion:'tsoldier'},
+ loco:{w:64,h:44,hp:12,name:'ПАРОВОЗ «ЧУХ-ЧУХ»',hint:'Перепрыгни разгон! Бей, когда врежется в тупик',sp:.5,atk:['throw','charge','charge'],proj:'steam',hello:'Чух-чух! Ту-ту-у-у! Освободите пути!',ouch:'Пш-ш-ш... пар кончился...',minion:'suitcase'},
+ keeper:{w:40,h:44,hp:12,name:'ВРАТАРЬ-ГИГАНТ',hint:'Перепрыгивай мячи и волны! Бей, когда устанет после прыжка',sp:1,hop:1,atk:['throw','slam','throw','slam'],proj:'sball',hello:'Ни один мяч не пролетит мимо меня!',ouch:'Пропустил... я устал...',minion:'footballer'},
+ queenbee:{w:40,h:40,hp:12,name:'КОРОЛЕВА ПЧЁЛ',hint:'Не стой под мёдом! Бей, когда устанет жужжать',sp:1,hop:1,atk:['rain','throw','ring'],ringTired:1,rainSlow:4,proj:'honey',ringSay:'БЗЗЗЗЗЗ!',hello:'Бзз! Кто трогает мой мёд?!',ouch:'Бз... крылышки устали...',minion:'bee'},
+ panda:{w:44,h:44,hp:12,name:'ПАНДА-НИНДЗЯ',hint:'Уворачивайся от сюрикенов! Бей, когда сядет жевать бамбук',sp:.9,atk:['throw','slam','charge'],proj:'shuriken',hello:'Хай-я! Ученики, к бою!',ouch:'Время бамбука... хрум-хрум...',minion:'ninjacat'}});
+Object.assign(GB_DRAW,{
+ stego(st,a,f){ell(-2,-16,26,12,'#7cb342');ell(-2,-12,22,6,'#aed581');for(let i=0;i<6;i++){ctx.fillStyle=i%2?'#ff7043':'#ff8a65';ctx.beginPath();ctx.moveTo(-20+i*7,-24);ctx.lineTo(-17+i*7,-36+Math.abs(i-2.5)*2);ctx.lineTo(-14+i*7,-24);ctx.fill()}
+  ell(26,-14,8,6,'#7cb342');R(28,-16,3,3,st?'#212121':'#ffffff');if(!st)R(29,-15,1,1,'#212121');R(30,-11,4,1,'#33691e');R(-30,-12,6,4,'#7cb342');R(-34,-14,4,3,'#ff8a65');for(const x of [-16,-6,6,14])R(x,-6+(a&&f&&x>0?-2:0),6,6,'#689f38')},
+ robodog(st,a,f){R(-18,-22,32,14,'#b0bec5');R(-18,-22,32,2,'#eceff1');for(const x of [-16,-6,4,10])R(x,-8,4,8,'#78909c');R(12,-32,16,14,'#90a4ae');R(26,-26,6,6,'#78909c');R(14,-36,4,6,'#607d8b');R(22,-36,4,6,'#607d8b');R(-22,-24,6,2,'#607d8b');
+  if(st){R(16,-28,4,1,'#212121');R(22,-28,4,1,'#212121')}else{R(16,-29,4,3,'#ff1744');R(22,-29,4,3,'#ff1744')}R(-6,-18,12,6,'#263238');R(-4,-16,3,2,a?'#ffeb3b':'#4dd0e1');R(1,-16,3,2,'#69f0ae');if(a&&f){R(28,-22,4,2,'#ffeb3b')}},
+ windbear(st,a,f){ell(0,-18,16,16,'#a1887f');ell(0,-14,10,9,'#d7ccc8');circ(0,-38,10,'#a1887f');circ(-8,-46,4,'#a1887f');circ(8,-46,4,'#a1887f');ell(2,-35,4,3,'#d7ccc8');R(1,-37,2,1,'#212121');
+  if(st){R(-5,-41,3,1,'#212121');R(3,-41,3,1,'#212121')}else{R(-5,-42,3,3,'#212121');R(3,-42,3,3,'#212121')}R(-16,-6,10,6,'#8d6e63');R(6,-6,10,6,'#8d6e63');R(-24,-18,6,4,'#c62828');R(-28,-20,6,10,'#ffffff');R(-28,-20,6,1,'#c62828');
+  R(12,-20+(a&&f?-6:0),8,3,'#d7a36a');R(-20,-34,4,4,'#bdbdbd');ell(-24,-34,4,3,'#ffd54f');ell(-16,-34,4,3,'#ffd54f')},
+ loco(st,a,f){R(-30,-30,44,22,'#212121');R(-30,-30,44,3,'#424242');R(14,-40,16,32,'#c62828');R(16,-36,12,10,'#e3f2fd');R(-24,-42,8,12,'#424242');for(let i=0;i<3;i++)circ(-20+i*5,-46-i*6-(st?0:f*2),3+i,st?'#9e9e9e':'#eceff1');R(-34,-14,4,6,'#9e9e9e');
+  for(const x of [-22,-6,10,22])circ(x,-6,6,'#212121');for(const x of [-22,-6,10,22])circ(x,-6,2,'#c62828');R(-24,-8,48,2,'#bdbdbd');if(st){R(-30,-24,4,1,'#fff59d')}else{circ(-30,-22,3,'#fff59d')}R(-28,-20,8,6,'#ffd54f');txt('ЧУХ',-6,-24,5,'#ffd54f','center','')},
+ keeper(st,a,f){human({skin:'#e0ac69',hair:'#212121',shirt:'#fdd835',pants:'#212121',shoes:'#212121'},{s:0,thr:a?1:0});ctx.save();ctx.scale(1.25,1.25);ctx.restore();R(-7,-14,4,4,'#4caf50');R(3,-14,4,4,'#4caf50');R(-2,-22,4,3,'#212121');txt('1',0,-21,5,'#212121','center','');if(a){R(-9,-32,4,4,'#4caf50');R(5,-32,4,4,'#4caf50')}if(st)R(1,-28,3,1,'#212121')},
+ queenbee(st,a,f){ell(-2,-14,16,11,'#ffd54f');for(let i=-12;i<10;i+=6)R(i,-25,3,22,'#212121');circ(14,-20,8,'#212121');R(15,-22,3,3,st?'#212121':'#ffffff');R(18,-22,3,3,st?'#212121':'#ffffff');for(let i=0;i<3;i++)R(10+i*4,-34,3,6,'#ffd54f');R(10,-30,11,2,'#ffd54f');
+  ell(-6,-30-(f&&!st?4:0),12,6,'#e1f5fecc');ell(4,-32-(f&&!st?4:0),10,5,'#e1f5fecc');ctx.fillStyle='#212121';ctx.beginPath();ctx.moveTo(-18,-14);ctx.lineTo(-26,-12);ctx.lineTo(-18,-10);ctx.fill();R(16,-14,1,6,'#212121')},
+ panda(st,a,f){const sit=st?6:0;ell(0,-16+sit,18,15-sit/2,'#fafafa');ell(0,-12+sit,12,8,'#ffffff');circ(6,-34+sit,10,'#fafafa');circ(-1,-42+sit,4,'#212121');circ(12,-42+sit,4,'#212121');ell(3,-35+sit,3,3,'#212121');ell(10,-35+sit,3,3,'#212121');R(3,-35+sit,1,1,'#ffffff');R(10,-35+sit,1,1,'#ffffff');R(6,-30+sit,2,2,'#212121');
+  R(-2,-38+sit,16,3,'#e53935');R(-8,-37+sit,6,2,'#e53935');R(-18,-22+sit,8,12,'#212121');R(10,-22+sit,8,12,'#212121');if(st){R(14,-30,3,24,'#7cb342');R(13,-26,5,2,'#558b2f')}else{R(-12,-6,8,6,'#212121');R(4,-6,8,6,'#212121')}if(a&&f)R(18,-26,6,6,'#cfd8dc')}});
+for(const k of ['stego','robodog','windbear','loco','keeper','queenbee','panda']){const D=GBD[k];BOSSDEF[k]={w:D.w,h:D.h,hp:D.hp,name:D.name,hint:D.hint};BOSS_VULN[k]=k==='stego'?(b)=>b.state==='tired':(b,src)=>src==='stomp'||b.state==='tired';BOSS_HARM[k]=b=>b.state==='tired'||b.state==='intro';BOSS_UPD[k]=gbUpd;
+ const sw=D.w+44,sh=D.h+44;BOSS_DRAW[k]=function(b,white){const st=b.state==='tired'?1:0,a=['throw','ring','rain','charge','slam'].includes(b.state)?1:0,f=Math.abs(b.vx)>.2||a?(frame>>2)%2:0;
+  const s=sprite(`gb|${k}|${st}|${a}|${f}`,sw,sh,sw/2,sh-4,()=>GB_DRAW[k](st,a,f));blit(s,b.x+b.w/2,b.y+b.h,b.dir,{white,sc:k==='keeper'?1.3:1});if(st)stars(b.x+b.w/2,b.y-8,14)}}
+PROJ_DRAW.steam=(pr,x,y)=>{circ(x+4,y+4,5,'#eceff1cc');circ(x+1,y+2,3,'#ffffffcc')};
+// ---- cutscenes ----
+Object.assign(CUT,{
+ dino:[{bg:'dino',d:330,a:[...D4(110)],l:[['ЛОКИ','Это стиральная машина времени!'],['ТОСЯ','Смотрите... ДИНОЗАВРЫ!'],['ЛЕКСИ','А у динозавров есть диванчики?']],ins:[{k:'loki',from:.33,to:.66,cap:'ЛОКИ',word:'ВАУ!'}]},
+  {bg:'dino',d:260,a:[RUN(),SASH()],l:[['САША','Рэй! Грант! Это не ваша эпоха!'],['САША','...они уже подружились с рапторами.']]},
+  CL('stego',[['СТЕГОЗАВР','Хрррум... Вы съедобные? Нет? Тогда уходите!']],['#8bc34a','#dcedc8'])],
+ lab:[{bg:'lab',d:330,a:[A('svetak',380,380,{dir:-1,st:'bitrix'}),...D4(110)],l:[['ИЗОБРЕТАТЕЛЬ','Наденьте очки! Сейчас будет взрыв... то есть опыт!'],['СТЁПА','Я в халате похож на профессора!'],['СВЕТА С БОНЕЙ','Вы можете изобрести Битрикс, который НЕ ВИСНЕТ?!']]},
+  CL('robodog',[['РОБО-ПЁС','ГАВ.EXE. ВСЕ. МЯЧИКИ. МОИ.']],['#4dd0e1','#e0f7fa'],{word:'БИП!'})],
+ toys:[{bg:'toys',d:330,a:[...D4(110)],l:[['ТОСЯ','Мы стали размером с игрушки!'],['ЛОКИ','У меня на спине ключик! Заведите меня!'],['ЛЕКСИ','Я завелась... и легла.']],ins:[{k:'lexi',st:'lie',from:.66,cap:'ЛЕКСИ',word:'Zzz'}]},
+  CL('windbear',[['ЗАВОДНОЙ МЕДВЕДЬ','Тук-тук-тук! Кто разбросал игрушки?!']],['#ffcc80','#fff3e0'],{word:'БУМ!'})],
+ train:[{bg:'train',d:330,a:[A('phonelady',260,260),A('buba',305,305),A('svetak',400,400,{dir:-1,st:'sushki'}),...D4(60,false)],l:[['СВЕТА С БУБОЙ','Алло? Я на вокзале! Ищи шапку-триколор!'],['СВЕТА С БОНЕЙ','Пассажиры! Сушки в дорогу! По одной на нос!'],['ЛОКИ','А нам можно в вагон-ресторан?']]},
+  {bg:'train',d:260,a:[RUN(),SASH()],l:[['САША','Рэй! Грант! Поезд уходит!'],['САША','...с вами. ПОДОЖДИТЕ!']],sfx:'honk'}],
+ stadium:[{bg:'stadium',d:330,a:[A('samcouple',380,380,{dir:-1}),...D4(110)],l:[['АНДРЕЙ','Настя, Фина болеет за нас! Ха-ха!'],['НАСТЯ','Фина, кричи «ГОЛ»! Ха-ха-ха!'],['ФИНА','...Гав.']],ins:[{k:'fina',from:.66,cap:'ФИНА',word:'ГОЛ?'}]},
+  CL('keeper',[['ВРАТАРЬ-ГИГАНТ','Ни один мячик не пройдёт! Даже теннисный!']],['#43a047','#c8e6c9'])],
+ bees:[{bg:'bees',d:330,a:[...D4(110)],l:[['ТОСЯ','Мы пчёлки! Бзз!'],['СТЁПА','Я самая длинная пчёлка в мире!'],['ЛОКИ','А мёд можно? А весь мёд можно?']]},
+  CL('queenbee',[['КОРОЛЕВА ПЧЁЛ','Бзз! Это не пчёлы! Это СОБАКИ в костюмах!']],['#ffd54f','#fff8e1'],{word:'БЗЗ!'})],
+ ninja:[{bg:'ninja',d:330,a:[A('samcouple',380,380,{dir:-1}),...D4(110)],l:[['ТОСЯ','Ниндзя двигаются бесшумно...'],['ЛОКИ','(очень громко) Я БЕСШУМНЫЙ!'],['НАСТЯ','Андрей, у Фины повязка! Ха-ха-ха!']],ins:[{k:'loki',from:.33,to:.66,cap:'ЛОКИ-НИНДЗЯ',word:'ТСС!'}]},
+  CL('panda',[['ПАНДА-НИНДЗЯ','Хай-я! Сначала сдайте экзамен... потом бамбук.']],['#e53935','#ffcdd2'],{word:'ХАЙ-Я!'})]});
+// ---- add the levels ----
+for(const [lv,msg,at] of [[DINO,'Стегозавр ушёл есть папоротники!',5],[LAB,'Робо-Пёс перезагрузился и стал добрым!',12],[TOYS,'Медведь заснул до утра!',19],[TRAIN,'Паровоз отдохнул, все едут на море!',26],[STADIUM,'Гол! Гав-Патруль — чемпион!',33],[BEES,'Королева угостила всех мёдом!',40],[NINJA,'Панда принял собак в ниндзя!',47]]){LEVELS.splice(at,0,lv);CLEARMSG.splice(at,0,msg)}
+for(const th of ['dino','train','stadium']){const lv=LEVELS.find(l=>l.theme===th),ob=lv.build;lv.build=function(a){ob(a);placeNear(lv,1,x=>{a.e('rayrun',x,GY,{range:240});a.e('sasha',x-90,GY)})}}
+for(const th of ['toys','stadium','ninja']){const lv=LEVELS.find(l=>l.theme===th),ob=lv.build;lv.build=function(a){ob(a);placeNear(lv,1,x=>a.e('svetak',x,GY,{range:50}))}}
+ROWS=Math.ceil(LEVELS.length/COLS);
+try{save=clamp(+localStorage.getItem('tosya_lvl')||0,0,LEVELS.length-1)}catch(e){}
+stretchShots();
 
 // ================= RENDER =================
 function drawWeather(){if(!L)return;
