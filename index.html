@@ -3816,7 +3816,7 @@ function lvRec(th){return PROG.lv[th]||(PROG.lv[th]={m:[0,0,0]})}
 function medalCount(){let n=0,s=0;for(const k in PROG.lv){const m=PROG.lv[k].m;n+=m[0]+m[1]+m[2];s+=m[2]}return{n,s}}
 const ORIG_COLLAR={};for(const id of DOG_ORDER)ORIG_COLLAR[id]=DOGS[id].collar;
 function applyGear(){for(const id of DOG_ORDER)DOGS[id].collar=PROG.collar[id]||ORIG_COLLAR[id];SPR.clear()}
-applyGear();
+PROG.wear={};PROG.collar={};applyGear();
 // ---- per-level run: treats collected, damage, the secret toy ----
 function secretSpot(){const c=plats.filter(p=>!p.mv&&p.x>260&&p.x+p.w<L.arena-150&&p.y<GY-12).sort((a,b)=>a.y-b.y||a.x-b.x)[0];
  return c?{x:Math.round(c.x+c.w/2-5),y:Math.round(c.y-46)}:{x:24,y:GY-74}}
@@ -3845,11 +3845,11 @@ const MEDALS=[['ВСЕ ВКУСНЯШКИ','#ffd54f'],['БЕЗ УРОНА','#4fc
 function drawMedal(x,y,k,on){const c=on?MEDALS[k][1]:'#555555';R(x-3,y-9,2,6,on?'#e53935':'#444444');R(x+1,y-9,2,6,on?'#1e88e5':'#444444');circ(x,y,6,c);circ(x,y,4,on?dk(c,1.2):'#666666');
  if(k===0)R(x-2,y-1,4,2,on?'#8d4a2a':'#444444');if(k===1){R(x-1,y-3,2,6,on?'#ffffff':'#444444');R(x-3,y-1,6,2,on?'#ffffff':'#444444')}if(k===2)circ(x,y,1.5,on?'#ffffff':'#444444')}
 {const _st=step;step=function(){if(G.state==='story')G.freshRun=true;const was=G.state;_st();
- if(G.state==='clear'&&was!=='clear'&&G.run&&!G.run.done){const r=G.run;r.done=1;const m=[r.total>0&&r.got.size>=r.total?1:0,r.hurt?0:1,r.secret?1:0],rec=lvRec(r.th);let nw=0;
-  for(let k=0;k<3;k++)if(m[k]&&!rec.m[k]){rec.m[k]=1;nw++}const bonus=r.got.size+nw*20;PROG.bank+=bonus;saveProg();r.res={m,nw,bonus}}}}
+ if(G.state==='clear'&&was!=='clear'&&G.run&&!G.run.done){const r=G.run;r.done=1;const m=[r.total>0&&r.got.size>=r.total?1:0,r.hurt?0:1,r.secret?1:0],rec=lvRec(r.th),s0=medalCount().s;let nw=0;
+  for(let k=0;k<3;k++)if(m[k]&&!rec.m[k]){rec.m[k]=1;nw++}const bonus=r.got.size+nw*20;PROG.bank+=bonus;saveProg();r.res={m,nw,bonus};const s1=medalCount().s,bb=BONUS.find(([need])=>s0<need&&s1>=need);if(bb){G.pendingBonus=bb[2];r.res.bonusName=bb[1]}}}}
 {const _rn=render;render=function(){_rn();ctx=MAIN;MAIN.setTransform(1,0,0,1,0,0);
  if(G.state==='clear'&&G.run&&G.run.res){const r=G.run.res;panel(80,180,320,62);for(let k=0;k<3;k++){const x=130+k*110,on=r.m[k];drawMedal(x,198,k,on);txt(MEDALS[k][0],x,210,5,on?MEDALS[k][1]:'#777777','center','')}
-  txt('+'+r.bonus+' вкусняшек в копилку'+(r.nw?' (медали +'+r.nw*20+')':'')+'   всего: '+PROG.bank,W/2,226,5,'#ff99aa','center','')}
+  {const mc=medalCount();txt('Медали: '+mc.n+'/'+LEVELS.length*3+'   Тайники: '+mc.s+'/'+LEVELS.length,W/2,226,5,'#ff99aa','center','');if(r.bonusName)txt('Открыта бонус-заставка: '+r.bonusName+'!',W/2,236,5,'#77ff77','center','')}}
  if(G.state==='play'&&G.run){txt(G.run.got.size+'/'+G.run.total,268,21,5,G.run.got.size>=G.run.total?'#ffd54f':'#ffffff','left','');blit(itemSprite('toy',0),300,19,1,{sc:.6,a:G.run.secret?1:.25});if(PROG.puppy)txt('ЩЕНОК',316,21,5,'#77ff77','left','');
   if(PROG.puppy&&boss&&!boss.dying)txt(boss.hint,W/2,H-38,5,'#ffe066','center','')}}}
 // medals in the level select grid
@@ -3900,10 +3900,11 @@ function drawKennel(){bgScroll('park',.3);ctx=MAIN;MAIN.setTransform(1,0,0,1,0,0
 {const _st=step;step=function(){if(G.state==='kennel'){frame++;pollPad();G.t++;const it=kennelItems();menuNav(it.length);
   if(M.left()){G.kdog=((G.kdog||0)+DOG_ORDER.length-1)%DOG_ORDER.length;S.menu()}if(M.right()){G.kdog=((G.kdog||0)+1)%DOG_ORDER.length;S.menu()}
   if(M.back()){G.state='title';G.mrow=0}else if(M.ok()&&it[G.mrow])it[G.mrow].f();for(const k in pressed)delete pressed[k];raw={};return}
- if(G.bonus&&G.state==='story'){G.bonus=null;G.state='kennel';G.t=0}
+ if(G.bonus&&G.state==='story'){G.bonus=null;G.level++;if(G.level>=LEVELS.length){G.state='ending';G.t=0;playSong('title')}else{G.state='story';G.t=0;playSong('title')}}
+ if(G.state==='clear'&&G.pendingBonus&&G.t>80&&(M.ok()||pressed.jump)){G.bonus=G.pendingBonus;G.pendingBonus=null;G.state='cs';G.t=0;parts=[];for(const k in pressed)delete pressed[k];raw={};return}
  _st()};
  const _rn=render;render=function(){if(G.state==='kennel'){ctx=MAIN;MAIN.setTransform(1,0,0,1,0,0);MAIN.imageSmoothingEnabled=false;drawKennel();return}_rn()};
- const _ti=titleItems;titleItems=function(){const a=_ti(),i=a.findIndex(x=>x.t==='ВЫБОР УРОВНЯ');a.splice(i<0?1:i,0,{t:'БУДКА',f:()=>{G.state='kennel';G.mrow=0;G.t=0;G.ktab=0}});
+ const _ti=titleItems;titleItems=function(){const a=_ti(),i=a.findIndex(x=>x.t==='ВЫБОР УРОВНЯ');
   const j=a.findIndex(x=>x.t.startsWith('ЗВУК'));a.splice(j<0?a.length:j,0,{t:'РЕЖИМ: '+(PROG.puppy?'ЩЕНЯЧИЙ':'ОБЫЧНЫЙ'),f:()=>{PROG.puppy=!PROG.puppy;saveProg();toast={s:PROG.puppy?'Щенячий режим: жизни не кончаются, есть подсказки':'Обычный режим',t:160}}});return a}}
 // puppy mode explained on the story screen
 {const _ds=drawStory;drawStory=function(){_ds();const m=(PROG.lv[LEVELS[G.level].theme]||{m:[0,0,0]}).m;for(let k=0;k<3;k++)drawMedal(28+k*16,22,k,m[k]);if(PROG.puppy)txt('ЩЕНЯЧИЙ РЕЖИМ',16,36,5,'#77ff77','left','')}}
