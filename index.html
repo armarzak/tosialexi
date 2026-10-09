@@ -3951,6 +3951,62 @@ const TWMORE={
 for(const k in TWMORE)if(CUT[k])CUT[k].push(TWMORE[k]);
 stretchShots();
 
+// ================= v3.6: Denny the kind black terrier with his owner; trainer Sasha with cane corso Bo (Butler) =================
+const DENNY={id:'denny',bl:34,bh:14,leg:12,hw:12,hh:12,earL:8,ear:'drop',c:'#1c1c1e',cs:'#111113',ch:'#2e2e32',w:'#1c1c1e',ws:'#111113',earC:'#111113',earS:'#2a2a2e',nose:'#000000',tip:'#1c1c1e',collar:'#e53935'};
+const BO={id:'bo',bl:32,bh:13,leg:12,hw:13,hh:12,earL:4,ear:'up',mutt:1,c:'#45474d',cs:'#33353a',ch:'#5a5d64',w:'#45474d',ws:'#33353a',earC:'#33353a',earS:'#55585f',nose:'#111111',tip:'#45474d',collar:'#c8a040'};
+function dennyShag(d,p){const lie=p.act==='lie',lg=lie?1:d.leg,bl=d.bl,bh=d.bh,x0=-(bl>>1),x1=x0+bl,top=-(lg+bh),hx=x1-4,hy=top-d.hh+3+(lie?2:0);
+ const puff=(x,y,r)=>{circ(x,y,r,'#1f1f22');R(x-1,y-r+1,2,1,'#45454c');R(x+1,y,1,1,'#3a3a40')};
+ for(let i=0;i<=bl-6;i+=4)puff(x0+i,top+1,2.5);for(let i=2;i<bl-6;i+=5)puff(x0+i,top+bh,2);puff(x0-1,top-3,3);puff(x0-2,top-7,2.5);
+ if(!lie&&!p.air)for(const lx of [x0+4,x1-5])puff(lx,-2,2);
+ puff(hx+2,hy,2.5);puff(hx+6,hy-1,2.5);R(hx+d.hw-6,hy,5,2,'#45454c');
+ const mx=hx+d.hw-2,my=hy+d.hh-5;R(mx-1,my+2,10,6,'#2a2a2e');for(let i=0;i<5;i++)R(mx+i*2,my+6,1,3+(i%2),'#3a3a40');R(mx+7,my-1,3,3,'#000000');
+ R(hx+d.hw-4,hy+2,2,2,'#6d4c41');R(hx+d.hw-4,hy+2,1,1,'#ffffff')}
+{const _dd=drawDogSpr;drawDogSpr=function(d,p){_dd(d,p);if(d.id==='denny'){dennyShag(d,p);if(COST&&!p.belly&&COSTUMES[COST])COSTUMES[COST](costGeo(d,p))}
+ if(d.id==='bo'&&!p.belly){const g=costGeo(d,p);R(g.hx-1,g.hy+g.hh-4,6,3,'#33353a');R(g.mx,g.my+3,8,2,'#2a2c31');R(g.hx+2,g.hy+1,g.hw-4,1,'#33353a')}}}
+const DENNYLADY={skin:'#f1c27d',hair:'#7b4a2a',long:1,shirt:'#f3efe6',pants:'#e8e2d6',shoes:'#8d6e63'};
+const TRAINER={skin:'#e0ac69',hair:'#1a1a1a',shirt:'#263238',pants:'#37474f',shoes:'#ffffff'};
+function dennySprite(s,f,talk){return sprite(`denny|${s}|${f}|${talk?1:0}`,110,64,52,56,()=>{
+ ctx.save();ctx.translate(-26,0);ctx.scale(1.15,1.3);human(DENNYLADY,{s});if(talk)R(2,-27,2,2,'#5a1a1a');ctx.restore();
+ ctx.strokeStyle='#e53935';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-26,-17);ctx.quadraticCurveTo(-8,-12,6,-30);ctx.stroke();
+ ctx.save();ctx.translate(16,0);drawDogSpr(DENNY,{f,air:0,act:'',wag:(f+1)%4,tongue:true});ctx.restore()})}
+function trainerSprite(s,f,talk){return sprite(`trainer|${s}|${f}|${talk?1:0}`,116,72,54,64,()=>{
+ ctx.save();ctx.translate(-26,0);ctx.scale(1.25,1.3);human(TRAINER,{s});const hy=-33;
+ R(-7,-23,14,12,TRAINER.shirt);R(-7,-23,2,12,'#1c2529');R(-9,-22,3,9,TRAINER.skin);R(6,-22,3,9,TRAINER.skin);R(-9,-22,3,1,'#c8955a');R(6,-22,3,1,'#c8955a');R(-2,-20,4,3,'#37474f');
+ R(-4,hy+6,8,4,'#1a1a1a');R(-5,hy+3,2,6,'#1a1a1a');R(1,hy+6,3,1,talk?'#c62828':'#7a3a2a');R(2,hy+2,3,1,'#1a1a1a');R(-1,-22,1,6,'#ffd54f');circ(-1,-15,1.5,'#c0c0c0');ctx.restore();
+ ctx.strokeStyle='#c8a040';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-14,-20);ctx.quadraticCurveTo(0,-12,10,-24);ctx.stroke();
+ ctx.save();ctx.translate(20,0);drawDogSpr(BO,{f,air:0,act:'',wag:(f+1)%4,tongue:(f%2)===0});ctx.restore()})}
+const DENNY_SAY=['Не бойтесь, Денни добрый!','Денни, нежнее! Нежнее!','Денни всех любит!','Денни, только не облизывай!','Какие хорошие собачки!','Денни, это Тося! Обнимай аккуратно!','Он просто хочет дружить!'];
+const TRAINER_SAY=['А вот был у меня случай... Ха-ха!','Я тренировал тренеров, которые тренировали тренеров!','Бо, рядом! Молодец, Батлер!','Однажды Бо съел мой протеин... Ха-ха-ха!','Главное в тренировке — улыбка!','Сидеть! Лежать! Ха-ха, это я не вам!','Слушайте историю! Значит, иду я...','Отжимания? Двести! А потом ещё двести! Ха-ха!','Бо добрый! Он просто большой, как я!'];
+Object.assign(EDEF,{denny:[52,36,9],trainer:[56,44,9]});Object.assign(SCORE,{denny:0,trainer:0});CRY.denny='';CRY.trainer='';
+Object.assign(EXTRA_INIT,{denny(e){e.friend=true;e.dir=1},trainer(e){e.friend=true;e.dir=1}});
+Object.assign(EXTRA_AI,{
+ denny(e,dx,dy,adx){patrol(e,.45,(e.opt&&e.opt.range)||80);if(adx<280&&e.t%120===30)say(e,DENNY_SAY[(e.t/120|0)%DENNY_SAY.length],'#6d4c41');
+  if(adx<200&&e.t%150===80)pops.push({x:e.x+e.w-10,y:e.y+4,s:'Гав! (обнимашки)',c:'#cfd8dc',t:0});if(!e.hi&&adx<240){e.hi=1;pop(e.x,e.y-30,'ДЕННИ И ХОЗЯЙКА','#ffe066')}
+  if(!e.gave&&ov(P,e)){e.gave=1;P.hp=Math.min(5,P.hp+2);S.heal();pop(e.x-20,e.y-30,'Денни обнимает! +2','#77ff77');for(let i=0;i<10;i++)parts.push({x:P.x+P.w/2,y:P.y,vx:rnd(-1.2,1.2),vy:-rnd(.5,1.8),g:-.01,life:50,c:'#ff6b9a',s:3,heart:1})}},
+ trainer(e,dx,dy,adx){patrol(e,.5,(e.opt&&e.opt.range)||90);if(adx<300&&e.t%110===20)say(e,TRAINER_SAY[(e.t/110|0)%TRAINER_SAY.length],'#1565c0');
+  if(adx<200&&e.t%160===90)pops.push({x:e.x+e.w-10,y:e.y+10,s:'ГАВ. (басом)',c:'#bdbdbd',t:0});if(!e.hi&&adx<240){e.hi=1;pop(e.x-10,e.y-34,'САША-ТРЕНЕР И БО','#ffe066')}
+  if(!e.gave&&ov(P,e)){e.gave=1;P.bark=100;P.hp=Math.min(5,P.hp+1);S.oneup();pop(e.x-30,e.y-34,'Тренировка! ГАВ заряжен!','#77ff77')}}});
+EXTRA_SPR.denny=e=>dennySprite(stepOf(e),Math.abs(e.vx)>.1?(e.t>>2)%4:0,e.t%120<50);
+EXTRA_SPR.trainer=e=>trainerSprite(stepOf(e),Math.abs(e.vx)>.1?(e.t>>2)%4:0,e.t%110<55);
+for(const th of ['park','city','plaza','snail','forest','beach','winter','zoo','show','groom','vet','market','rink','bees','dino','luna']){const lv=LEVELS.find(l=>l.theme===th);if(!lv)continue;const ob=lv.build;lv.build=function(a){ob(a);placeNear(lv,1,x=>a.e('denny',x,GY,{range:70}))}}
+for(const th of ['park','stadium','city','plaza','mount','beach','school','show','zoo','castle','ninja','train','roofs','jungle','west','airport']){const lv=LEVELS.find(l=>l.theme===th);if(!lv)continue;const ob=lv.build;lv.build=function(a){ob(a);placeNear(lv,1,x=>a.e('trainer',x,GY,{range:80}))}}
+// ---- cutscenes ----
+Object.assign(DOGX,{denny:DENNY,bo:BO});Object.assign(CLOSESC,{denny:3.2,trainer:3});
+Object.assign(SPK2,{'ХОЗЯЙКА ДЕННИ':'denny','ДЕННИ':'denny','САША-ТРЕНЕР':'trainer','БО':'bo'});
+const DN=(x,o={})=>A('denny',x,x,{dir:-1,...o}),TR=(x,o={})=>A('trainer',x,x,{dir:-1,...o});
+CUT.park.push(
+ {bg:'park',d:520,a:[DN(380),...D4(110,false)],l:[['ХОЗЯЙКА ДЕННИ','Не бойтесь! Денни очень добрый!'],['ЛОКИ','Он размером с диван!'],['ДЕННИ','Гав! (можно обнимашки?)'],['ЛЕКСИ','...Можно. Только я полежу.']],ins:[{k:'denny',from:.5,cap:'ДЕННИ',word:'ОБНИМУ!',col:['#f8bbd0','#fce4ec']}]},
+ {bg:'park',d:560,a:[TR(370),...D4(110,false)],l:[['САША-ТРЕНЕР','О! Гав-Патруль! Слушайте историю!'],['САША-ТРЕНЕР','Тренирую я как-то тренера тренеров... Ха-ха-ха!'],['ТОСЯ','А чем закончилось?'],['САША-ТРЕНЕР','А это уже другая история! Ха-ха! Бо, рядом!']],ins:[{k:'lexi',st:'lie',from:.7,cap:'ЛЕКСИ СЛУШАЕТ',word:'Zzz'}]},
+ CL('bo',[['БО','Гав. (басом) Я Батлер. Но можно Бо.']],['#90a4ae','#eceff1'],{word:'ГАВ.'}));
+const MORE2={
+ stadium:[{bg:'stadium',d:500,a:[TR(380),...D4(110,false)],l:[['САША-ТРЕНЕР','Разминка! Все за мной! Ха-ха!'],['ЛОКИ','Я уже бегу! Куда бежим?!'],['САША-ТРЕНЕР','Неважно куда! Важно — с улыбкой!']]},CL('trainer',[['САША-ТРЕНЕР','Двести отжиманий! А потом расскажу историю! Ха-ха-ха!']],['#ffd54f','#fff8e1'],{word:'ХА-ХА!'})],
+ show:[{bg:'show',d:460,a:[DN(380),...D4(110,false)],l:[['СУДЬЯ','Самая добрая собака выставки... Денни!'],['ХОЗЯЙКА ДЕННИ','Денни, ты победил! Нежно радуйся!'],['ДЕННИ','Гав! (обнимает судью)']],ins:[{k:'denny',from:.66,cap:'ДЕННИ',word:'ЛЮБЛЮ!'}]}],
+ winter:[{bg:'winter',d:420,a:[DN(380),...D4(110,false)],l:[['ХОЗЯЙКА ДЕННИ','Денни, ты как сугроб! Только чёрный!'],['СТЁПА','Можно я в него зароюсь? Там тепло!']]}],
+ mount:[{bg:'mount',d:460,a:[TR(380),...D4(110,false)],l:[['САША-ТРЕНЕР','Зарядка на высоте! Бо, вперёд!'],['САША-ТРЕНЕР','Однажды я Йети тренировал! Ха-ха-ха!'],['ТОСЯ','Правда?!'],['САША-ТРЕНЕР','Он до сих пор приседает! Ха-ха!']]}],
+ beach:[{bg:'beach',d:460,a:[TR(400),DN(300),...D4(90,false)],l:[['САША-ТРЕНЕР','Денни, плавать будем? Ха-ха!'],['ХОЗЯЙКА ДЕННИ','Он после воды сохнет три дня!'],['ЛЕКСИ','Как и я. Только я не мокну.']]}]};
+for(const k in MORE2)if(CUT[k])CUT[k].push(...MORE2[k]);
+stretchShots();
+
 // ================= RENDER =================
 function drawWeather(){if(!L)return;
  if(L.snow){for(const f of weather){f.y+=.4+f.s*.6;f.x+=Math.sin((frame+f.p*60)*.02)*.3;if(f.y>H){f.y=-4;f.x=Math.random()*W}const sx=((f.x-cam*(.3+f.s*.4))%W+W)%W;R(sx|0,f.y|0,f.s>.7?2:1,f.s>.7?2:1,'#ffffff')}}
